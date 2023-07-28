@@ -289,114 +289,6 @@ const PaginatedList = (props: IProps) => {
                         </div>
                         <p className="filter-item fix-content">{element.FlightNumber}</p>
                       </div>
-                      {/* <Dropdown overlay={() => {
-                        const convert = dataCountry.find((city) => element.StartPoint === city.code)?.city ?? ''
-                        const convertEnd = dataCountry.find((city) => element.EndPoint === city.code)?.city ?? ''
-                        const totalPrice = element.Adt * element.FareAdt + element.Chd * element.FareChd + element.Inf * element.FareInf + element.TotalFeeTaxAdt
-                        return (
-                          <div className='frame-dropdown'>
-                            <div className='layout-left'>
-                              <div className='dot'></div>
-                              <div className='line'></div>
-                              <div className='dot-bold'></div>
-                            </div>
-                            <div className='div-flex-row'>
-                              <div className='layout-right'>
-                                <h3 className='dropdown-city'>{convert} ({element.StartPoint})</h3>
-                                <div className='flex-row'>
-                                  <h3 className='dropdown-city'>{getAirlineFullName(element.Airline)}</h3>
-                                  {getAirlineLogo(element.Airline, '40px')}
-                                </div>
-                                <div className='flex-row'>
-                                  <h3 className='dropdown-city'>
-                                    {element.FlightNumber}
-                                  </h3> {element.Promo ? '-' : null} <h3 className='dropdown-city'>
-                                    {element.Promo === true ? 'Promo' : null}
-                                  </h3>
-                                </div>
-                                <div className='info-air'>
-                                  <div className='flex-row-info'>
-                                    <FiBriefcase />
-                                    <div className='info-col'>
-                                      <span>Baggage {element.ListSegment[0].HandBaggage}</span>
-                                      <span>Cabin {element.ListSegment[0].Cabin}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-row-info'>
-                                    <PiWarningCircleThin />
-                                    <div className='info-col'>
-                                      <span>Airbus {element.FlightNumber}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className='info-air'>
-                                  <div className='flex-row-info'>
-                                    <VscSymbolClass />
-                                    <div className='info-col'>
-                                      <span>Class {element.ListSegment[0].Class}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <h3 className='dropdown-city'>{convertEnd} ({element.EndPoint})</h3>
-                              </div>
-                              <div className='layout-right'>
-                                <div style={{
-                                  display: 'flex',
-                                  width: '100%',
-                                  paddingBottom: '12px',
-                                  borderBottom: '1px solid black',
-                                  flexDirection: 'column',
-                                  gap: '12px'
-                                }}>
-                                  <h3 className='dropdown-city' style={{ textAlign: 'center' }}>Hành lý bao gồm</h3>
-                                  <div className='flex-row'>
-                                    <h3 className='dropdown-city'>01 kiện {element.ListSegment[0].HandBaggage} xách tay</h3>
-                                  </div>
-                                  <div className='flex-row'>
-                                    <h3 className='dropdown-city'>
-                                      01 kiện {element.ListSegment[0].AllowanceBaggage} kí gửi
-                                    </h3> {element.Promo ? '-' : null} <h3 className='dropdown-city'>
-                                      {element.Promo === true ? 'Promo' : null}
-                                    </h3>
-                                  </div>
-                                </div>
-                                <div style={{
-                                  display: 'flex',
-                                  width: '100%',
-                                  paddingBottom: '12px',
-                                  flexDirection: 'column',
-                                  gap: '12px'
-                                }}>
-                                  <h3 className='dropdown-city' style={{ textAlign: 'center' }}>Tóm tắt giá vé</h3>
-                                  <div className='flex-row' style={{ justifyContent: 'space-between' }}>
-                                    <h3 className='dropdown-city'>{element.Adt} người lớn</h3>
-                                    <h3 className='dropdown-city'>{element.Adt} x {element.FareAdtFormat} {element.Currency}</h3>
-                                  </div>
-                                  <div className='flex-row' style={{ justifyContent: 'space-between' }}>
-                                    <h3 className='dropdown-city'>{element.Chd} trẻ em</h3>
-                                    <h3 className='dropdown-city'>{element.Chd} x {element.FareChdFormat} {element.Currency}</h3>
-                                  </div>
-                                  <div className='flex-row' style={{ justifyContent: 'space-between' }}>
-                                    <h3 className='dropdown-city'>{element.Inf} em bé</h3>
-                                    <h3 className='dropdown-city'>{element.Inf} x {element.FareInfFormat} {element.Currency}</h3>
-                                  </div>
-                                  <div className='flex-row' style={{ justifyContent: 'space-between' }}>
-                                    <h3 className='dropdown-city'>Tổng thuế và phí</h3>
-                                    <h3 className='dropdown-city'>{element.TotalFeeTaxAdt} {element.Currency}</h3>
-                                  </div>
-                                  <div className='flex-row' style={{ justifyContent: 'space-between' }}>
-                                    <h3 className='dropdown-city'>Tổng cộng</h3>
-                                    <h3 className='dropdown-city'>{formatNumber(totalPrice)} {element.Currency}</h3>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      }
-                      } visible={visibleDropdowns[index]} onVisibleChange={(flag) => handleDropdownVisibleChange(index, flag)} className='hover-dropdown' trigger={['click']} arrow>
-                        <Button className='detail'>Chi tiết <RiArrowDropDownLine /></Button>
-                      </Dropdown> */}
                       <Button className='detail' style={{ maxWidth: 'fit-content' }} onClick={() => onOpen(element)}>Chi tiết</Button>
                     </div>
                     <div className='item-col-1'>
@@ -441,20 +333,6 @@ const PaginatedList = (props: IProps) => {
               })
               : <Empty description={'Không tìm thấy chuyến bay bạn yêu cầu.'} style={{ gridColumn: 'span 2 / span 2' }} />
           }
-          {/* {itemsPerPage <= paginatedData.length &&
-            <div className='paginated-item'>
-              <p style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                gridColumn: 'span 5 / span 5',
-                textAlign: 'center',
-                cursor: 'pointer'
-              }} onClick={() => setItemPerPage(prev => prev + 5)}>Load more</p>
-            </div>
-
-          } */}
         </div>
       </div>
       <Pagination

@@ -54,6 +54,20 @@ export const formatNgayThangNam3 = (day: string) => {
     }
 }
 
+export const formatNgayThangNam4 = (day: string) => {
+    const dateObj = dayjs(day, 'DDMMYYYY');
+    const dayOfWeekName = dateObj.format('dddd');
+    const dayOfMonth = dateObj.format('DD');
+    const month = dateObj.format('MM');
+    const formattedDate = `${dayOfWeekName}, ${dayOfMonth}/${month}`;
+    if (formattedDate === 'Invalid Date, Invalid Date/Invalid Date') {
+        return null
+    } else {
+        return formattedDate.replace(/\b\w/, (char) => char.toUpperCase())
+    }
+}
+
+
 export const convertCity = (code: string) => {
     const convert = dataCountry.find((element) => element.code === code)?.city ?? ''
     return convert

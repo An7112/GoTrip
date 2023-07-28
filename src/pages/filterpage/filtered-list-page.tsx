@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import MiniBooking from './mini-booking/mini-booking';
 import { setAllData, setAllDataTwo, setBooking, setListGeoCodeOneTrip, setListGeoCodeTwoTrip } from 'store/reducers';
 import { formatNgayThangNam3, getAirlineFullName } from 'utils/custom/custom-format';
+import SliderDateTrendReturn from './slider/slider-date-trend-return';
 dayjs.extend(customParseFormat);
 dayjs.extend(weekday);
 dayjs.extend(localizedFormat);
@@ -358,7 +359,7 @@ function FilteredListPage() {
         }
     }, [progress, maxProgress]);
 
-    
+
     useEffect(() => {
         fetchData()
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -509,7 +510,7 @@ function FilteredListPage() {
                                                             value={option.airline}
                                                             checked={filters.airline.includes(option.airline)}
                                                             defaultChecked
-                                                    
+
                                                         />
                                                         <p className="title text-truncate">
                                                             {getAirlineFullName(option.airline)}
@@ -549,7 +550,7 @@ function FilteredListPage() {
                                                         </p>
                                                     </div>
                                                     <p className="filter-item text-truncate">{option.minFareAdtFull.toLocaleString('en-US')} VNĐ</p>
-                                        
+
                                                 </div>
                                             ))
                                             : minFaresByAirlines2.map((option) => (
@@ -566,7 +567,7 @@ function FilteredListPage() {
                                                         </p>
                                                     </div>
                                                     <p className="filter-item text-truncate">{option.minFareAdtFull.toLocaleString('en-US')} VNĐ</p>
-                                        
+
                                                 </div>
                                             ))
                                     }
@@ -732,7 +733,7 @@ function FilteredListPage() {
                                                         </p>
                                                     </div>
                                                     <p className="filter-item text-truncate">{option.minFareAdtFull.toLocaleString('en-US')} VNĐ</p>
-                                        
+
                                                 </div>
                                             ))
                                             : minFaresByAirlines.map((option) => (
@@ -749,7 +750,7 @@ function FilteredListPage() {
                                                         </p>
                                                     </div>
                                                     <p className="filter-item text-truncate">{option.minFareAdtFull.toLocaleString('en-US')} VNĐ</p>
-                                        
+
                                                 </div>
                                             ))
                                         : minFaresByAirlines2.length === 1
@@ -768,7 +769,7 @@ function FilteredListPage() {
                                                         </p>
                                                     </div>
                                                     <p className="filter-item text-truncate">{option.minFareAdtFull.toLocaleString('en-US')} VNĐ</p>
-                                        
+
                                                 </div>
                                             ))
                                             : minFaresByAirlines2.map((option) => (
@@ -785,7 +786,7 @@ function FilteredListPage() {
                                                         </p>
                                                     </div>
                                                     <p className="filter-item text-truncate">{option.minFareAdtFull.toLocaleString('en-US')} VNĐ</p>
-                                        
+
                                                 </div>
                                             ))
                                 }
@@ -948,10 +949,6 @@ function FilteredListPage() {
                                 </div>
                             </div>
 
-                            <div className='slider-top-filter'>
-                               {tripType === false &&  <SliderDateTrend />}
-                            </div>
-
                             <Tabs
                                 defaultActiveKey="1"
                                 onChange={(value) => setPageRevert(Number(value))}
@@ -960,12 +957,22 @@ function FilteredListPage() {
                                     {
                                         label: 'Chuyến đi',
                                         key: '1',
-                                        children: <PaginatedList paginatedData={filteredData} loading={loading} pageRevert={1} onNumberChange={handleNumberChange} />,
+                                        children: <>
+                                            <div className='slider-top-filter'>
+                                                <SliderDateTrend />
+                                            </div>
+                                            <PaginatedList paginatedData={filteredData} loading={loading} pageRevert={1} onNumberChange={handleNumberChange} />
+                                        </>,
                                     },
                                     {
                                         label: 'Chuyến về',
                                         key: '2',
-                                        children: <PaginatedList paginatedData={filteredData2} loading={loading2} pageRevert={2} onNumberChange={handleNumberChange} />,
+                                        children: <>
+                                            <div className='slider-top-filter'>
+                                                <SliderDateTrendReturn />
+                                            </div>
+                                            <PaginatedList paginatedData={filteredData2} loading={loading2} pageRevert={2} onNumberChange={handleNumberChange} />
+                                        </>,
                                         disabled: statusOpenTab2 === false,
                                     },
                                 ]}
