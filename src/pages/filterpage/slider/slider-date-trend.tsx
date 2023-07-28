@@ -95,33 +95,38 @@ function SliderDateTrend() {
         ),
         responsive: [
             {
-                breakpoint: 1800,
+                breakpoint: 1165,
                 settings: {
                     slidesToShow: 4,
                     slidesToScroll: 4,
-                    infinite: true,
-                    dots: true
+                    initialSlide: 4
                 }
             },
             {
-                breakpoint: 1785,
+                breakpoint: 1094,
                 settings: {
                     slidesToShow: 3,
                     slidesToScroll: 3,
-                    infinite: true,
-                    dots: true
+                    initialSlide: 3
                 }
             },
             {
-                breakpoint: 600,
+                breakpoint: 1000,
                 settings: {
-                    slidesToShow: 2,
-                    slidesToScroll: 2,
-                    initialSlide: 2
+                    slidesToShow: 3,
+                    slidesToScroll: 3,
+                    initialSlide: 3
                 }
             },
             {
-                breakpoint: 566,
+                breakpoint: 745,
+                settings: {
+                    slidesToShow: 3,
+                    slidesToScroll: 3
+                }
+            },
+            {
+                breakpoint: 554,
                 settings: {
                     slidesToShow: 2,
                     slidesToScroll: 2

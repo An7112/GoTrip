@@ -142,19 +142,23 @@ const PaginatedList = (props: IProps) => {
   const airportNameStart = selectedItem && listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === selectedItem.StartPoint).AirportName
   const airportNameEnd = selectedItem && listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === selectedItem.EndPoint).AirportName
 
-  const flatData = allData.flatMap((response: any) => flattenListAircraft(response))
+  const flatData = allData.flatMap((response: any) => flattenListAircraft(response)) ?? []
 
   const uniqueSet = new Set(flatData.map((item: any) => JSON.stringify(item)));
   const uniqueArray = Array.from(uniqueSet).map((item: any) => JSON.parse(item));
 
-  const typePlane = selectedItem && uniqueArray.length > 0 && uniqueArray.find((element: any) => element.IATA === selectedItem.ListSegment[0].Plane).Manufacturer
+  const typePlane = selectedItem && selectedItem.ListSegment[0].Plane && uniqueArray.length > 0 
+  ? uniqueArray.find((element: any) => element.IATA === selectedItem.ListSegment[0].Plane)?.Manufacturer
+  : 'Airbus';
 
-  const flatDataTwo = allDataTwo.flatMap((response: any) => flattenListAircraft(response))
+  const flatDataTwo = allDataTwo.flatMap((response: any) => flattenListAircraft(response)) ?? []
 
   const uniqueSetTwo = new Set(flatDataTwo.map((item: any) => JSON.stringify(item)));
   const uniqueArrayTwo = Array.from(uniqueSetTwo).map((item: any) => JSON.parse(item));
 
-  const typePlaneTwo = selectedItem && uniqueArrayTwo.length > 0 && uniqueArrayTwo.find((element: any) => element.IATA === selectedItem.ListSegment[0].Plane).Manufacturer
+  const typePlaneTwo = selectedItem && selectedItem.ListSegment[0].Plane && uniqueArrayTwo.length > 0 
+  ? uniqueArrayTwo.find((element: any) => element.IATA === selectedItem.ListSegment[0].Plane)?.Manufacturer
+  : 'Airbus'
 
   const items: TabsProps['items'] = [
     {
@@ -176,8 +180,8 @@ const PaginatedList = (props: IProps) => {
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                 <span className='text-15'>Chuyến bay: <strong>{selectedItem.FlightNumber}</strong> </span>
                 {pageRevert === 1
-                  ? <span className='text-15'>Loại máy bay: <strong>{typePlane && typePlane} {selectedItem.ListSegment[0].Plane}</strong> </span>
-                  : <span className='text-15'>Loại máy bay: <strong>{typePlaneTwo && typePlaneTwo} {selectedItem.ListSegment[0].Plane}</strong> </span>
+                  ? <span className='text-15'>Loại máy bay: <strong>{typePlane && typePlane} {selectedItem.ListSegment[0]?.Plane}</strong> </span>
+                  : <span className='text-15'>Loại máy bay: <strong>{typePlaneTwo && typePlaneTwo} {selectedItem.ListSegment[0]?.Plane}</strong> </span>
                 }
               </span>
             </div>
