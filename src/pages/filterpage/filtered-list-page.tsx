@@ -452,6 +452,8 @@ function FilteredListPage() {
         }
     }, [filters, paginatedData, paginatedData2, tripType]);
 
+    console.log(filteredData)
+
     const handleNumberChange = (number: number) => {
         console.log(number)
         setPageRevert(number)

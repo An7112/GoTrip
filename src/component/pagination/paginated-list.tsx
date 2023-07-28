@@ -6,7 +6,7 @@ import { Button, Drawer, Empty, Skeleton, Tabs, TabsProps } from 'antd';
 import { ListSegmentType } from 'modal/index';
 import { useDispatch, useSelector } from 'react-redux';
 import { setBooking, setOutPage, setSelectedItem } from 'store/reducers';
-import { convertCity, formatNgayThangNam2, formatNgayThangNam3, getNumberOfStops } from 'utils/custom/custom-format';
+import { convertCity, formatNgayThangNam2, formatNgayThangNam3, getAirlineFullName, getNumberOfStops } from 'utils/custom/custom-format';
 import { FaPlaneArrival, FaPlaneDeparture } from 'react-icons/fa';
 
 interface IProps {
@@ -23,7 +23,7 @@ const PaginatedList = (props: IProps) => {
   const { tripType, selectedItem, listGeoCodeOneTrip, allData, allDataTwo } = useSelector((state: any) => state)
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemPerPage] = useState(5);
+  const [itemsPerPage, _] = useState(5);
   const [visibleDropdowns, setVisibleDropdowns] = useState<any>({});
   const [sliceLoadMore, setSliceLoadMore] = useState([])
   const [open, setOpen] = useState(false)
@@ -41,30 +41,16 @@ const PaginatedList = (props: IProps) => {
     setCurrentPage(selectedPage);
   };
 
-  const offset = currentPage * itemsPerPage;
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [paginatedData]);
+
   const pagedItems = useMemo(() => {
+    const offset = currentPage * itemsPerPage;
     const startIndex = offset;
     const endIndex = offset + itemsPerPage;
     return paginatedData.slice(startIndex, endIndex);
-  }, [offset, itemsPerPage, paginatedData]);
-
-
-
-  const getAirlineFullName = (abbr: string) => {
-    switch (abbr) {
-      case 'VJ':
-        return 'Vietjet Air';
-      case 'VN':
-        return 'Vietnam Airlines';
-      case 'QH':
-        return 'Bamboo Airways';
-      case 'VU':
-        return 'Vietravel';
-      default:
-        return abbr;
-    }
-  };
-
+  }, [currentPage, itemsPerPage, paginatedData]);
 
   const handleDivClick = (key: any) => {
     setVisibleDropdowns((prevVisibleDropdowns: { [x: string]: any; }) => ({
