@@ -177,7 +177,7 @@
 }
 
 .title-trend{
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1.15;
     width: 100%;
@@ -273,4 +273,10 @@
 
 .slider-action.section.prev{
     left: 3rem;
+}
+
+@media (max-width: 395px){
+    .title-trend{
+        font-size: 12px;
+    }
 }

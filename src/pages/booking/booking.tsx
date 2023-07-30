@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 // import 'antd/dist/antd.css';
 import 'dayjs/locale/vi';
 import { BookingType } from 'modal/index';
-import { convertCity, formatNgayThangNam, getAirlineFullName, getNumberOfStops } from 'utils/custom/custom-format';
+import { convertCity, formatNgayThangNam, formatNgayThangNam4, getAirlineFullName, getNumberOfStops } from 'utils/custom/custom-format';
 import { useDispatch } from 'react-redux';
 import { setOutPage } from 'store/reducers';
 dayjs.locale('vi')
@@ -159,8 +159,10 @@ function Booking() {
     };
 
     const handleSubmitInf = () => {
+        handleSubmit()
         console.log([...formDataInf, ...formDataInfChid, ...formDataInfBaby]);
     };
+
 
     const getAirlineLogo = (abbr: string, style: string) => {
         switch (abbr) {
@@ -200,13 +202,13 @@ function Booking() {
                 <p className='dsc-page'>Điền thông tin chi tiết của bạn và xem lại đặt phòng của bạn.</p>
                 <div className='booking-grid'>
                     <div className='flex-col'>
-                        <div className='booking-grid-item col-2'>
-                            <h3 className='title-page'>Thông tin chi tiết về khách du lịch.</h3>
-                            <div className='contact-form'>
-                                <div className='contact-header'>
-                                    <p className='text-15'>Thông tin hành khách</p>
-                                </div>
-                                <Form layout="vertical" onFinish={handleSubmitInf}>
+                        <Form layout="vertical" onFinish={handleSubmitInf}>
+                            <div className='booking-grid-item col-2'>
+                                <h3 className='title-page'>Thông tin chi tiết về khách du lịch.</h3>
+                                <div className='contact-form'>
+                                    <div className='contact-header'>
+                                        <p className='text-15'>Thông tin hành khách</p>
+                                    </div>
                                     {dataBooking.length > 0 && dataBooking[0].Adt > 0
                                         && <Row>
                                             <div className='contact-header inner'>
@@ -216,10 +218,10 @@ function Booking() {
                                     }
                                     {formDataInf.map((formItem, index) => (
                                         <Row gutter={[16, 16]} key={index}>
-                                            <Col span={3} sm={3} style={{alignItems:'center', display:'flex'}}>
-                                               <p>Người lớn {index + 1}</p>
+                                            <Col span={24} sm={24} style={{ alignItems: 'center', display: 'flex' }}>
+                                                <p style={{ fontWeight: '700' }}>Người lớn {index + 1}</p>
                                             </Col>
-                                            <Col span={8} sm={8}>
+                                            <Col span={9} sm={9} xs={24}>
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['content', index]}
@@ -237,7 +239,7 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={8} sm={8}>
+                                            <Col span={9} sm={9} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullname', index]}
@@ -249,12 +251,20 @@ function Booking() {
                                                     />
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={5} sm={5}>
+                                            <Col span={6} sm={6} xs={12}>
                                                 <Form.Item
                                                     label="Thêm hành lý"
                                                     name={['luggage', index]}
                                                 >
-                                                    <InputNumber min={1} max={3} defaultValue={1} onChange={(value) => handleInputChangeInf(index, 'luggage', value)} />
+                                                    <Select
+                                                        defaultValue="1"
+                                                        onChange={(value) => handleInputChangeInf(index, 'luggage', value)}
+                                                        options={[
+                                                            { value: '1', label: '1' },
+                                                            { value: '2', label: '2' },
+                                                            { value: '3', label: '3' },
+                                                        ]}
+                                                    />
                                                 </Form.Item>
                                             </Col>
                                         </Row>
@@ -266,10 +276,10 @@ function Booking() {
                                     </Row>}
                                     {formDataInfChid.map((formItem, index) => (
                                         <Row gutter={[16, 16]} key={index}>
-                                            <Col span={3} sm={3} style={{alignItems:'center', display:'flex'}}>
-                                               <p>Trẻ em {index + 1}</p>
+                                            <Col span={24} sm={24} style={{ alignItems: 'center', display: 'flex' }}>
+                                                <p style={{ fontWeight: '700' }}>Trẻ em {index + 1}</p>
                                             </Col>
-                                            <Col span={5} sm={5}>
+                                            <Col span={8} sm={8} xs={24}>
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['contentChid', index]}
@@ -287,7 +297,7 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={8} sm={8}>
+                                            <Col span={8} sm={8} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullnameChid', index]}
@@ -299,7 +309,7 @@ function Booking() {
                                                     />
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={8} sm={8}>
+                                            <Col span={8} sm={8} xs={24}>
                                                 <Form.Item
                                                     label="Nhập ngày sinh"
                                                     name={['date', index]}
@@ -320,17 +330,17 @@ function Booking() {
                                     {dataBooking.length > 0 && dataBooking[0].Inf > 0
                                         && <Row>
                                             <div className='contact-header inner'>
-                                                <p className='text-15'>Thông tin trẻ em dưới 2</p>
+                                                <p className='text-15'>Thông tin trẻ em dưới 2 tuổi</p>
                                             </div>
                                         </Row>
                                     }
 
                                     {formDataInfBaby.map((formItem, index) => (
                                         <Row gutter={[16, 16]} key={index}>
-                                            <Col span={3} sm={3} style={{alignItems:'center', display:'flex'}}>
-                                               <p>Em bé {index + 1}</p>
+                                            <Col span={24} sm={24} style={{ alignItems: 'center', display: 'flex' }}>
+                                                <p style={{ fontWeight: '700' }}>Em bé {index + 1}</p>
                                             </Col>
-                                            <Col span={5} sm={5}>
+                                            <Col span={8} sm={8} xs={24}>
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['contentBaby', index]}
@@ -348,7 +358,7 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={8} sm={8}>
+                                            <Col span={8} sm={8} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullnameBaby', index]}
@@ -360,7 +370,7 @@ function Booking() {
                                                     />
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={8} sm={8}>
+                                            <Col span={8} sm={8} xs={24}>
                                                 <Form.Item
                                                     label="Nhập ngày sinh"
                                                     name={['dateBaby', index]}
@@ -375,29 +385,18 @@ function Booking() {
                                                     />
                                                 </Form.Item>
                                             </Col>
-
                                         </Row>
                                     ))}
-                                    <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        {/* <Button onClick={handleGoBack} type="primary">
-                                            Quay lại
-                                        </Button> */}
-                                        <Button type="primary" htmlType="submit" onClick={handleSubmitInf}>
-                                            Đặt vé
-                                        </Button>
-                                    </div>
-                                </Form>
-                            </div>
-                        </div>
-                        <div className='booking-grid-item col-2'>
-                            <h3 className='title-page'>Chi tiết liên hệ.</h3>
-                            <div className='contact-form'>
-                                <div className='contact-header'>
-                                    <p className='text-15'>Chi tiết liên hệ (đối với vé điện tử/Voucher)</p>
                                 </div>
-                                <Form layout="vertical">
+                            </div>
+                            <div className='booking-grid-item col-2'>
+                                <h3 className='title-page'>Chi tiết liên hệ.</h3>
+                                <div className='contact-form'>
+                                    <div className='contact-header'>
+                                        <p className='text-15'>Chi tiết liên hệ (đối với vé điện tử/Voucher)</p>
+                                    </div>
                                     <Row gutter={[16, 16]}>
-                                        <Col span={12} sm={12}>
+                                        <Col span={12} sm={12} xs={24}>
                                             <Form.Item
                                                 rules={[
                                                     { required: true, message: 'Vui lòng nhập số điện thoại' },
@@ -423,7 +422,7 @@ function Booking() {
                                                 />
                                             </Form.Item>
                                         </Col>
-                                        <Col span={12} sm={12}>
+                                        <Col span={12} sm={12} xs={24}>
                                             <Form.Item
                                                 label="Email"
                                                 name="email"
@@ -437,10 +436,10 @@ function Booking() {
                                                 <Input name="email" onChange={handleInputChange} />
                                             </Form.Item>
                                         </Col>
-                                        <Col span={24} sm={24}>
+                                        <Col span={24} sm={24} style={{marginBottom:'12px'}}>
                                             <Checkbox onChange={(value) => setBill(value.target.checked)}>Yêu cầu xuất hóa đơn</Checkbox>
                                         </Col>
-                                        <Col span={12} sm={12} style={{ display: bill === false ? 'none' : '' }}>
+                                        <Col span={12} sm={12} xs={24} style={{ display: bill === false ? 'none' : '' }}>
                                             <Form.Item
                                                 label="Mã số thuế"
                                                 name="taxCode"
@@ -453,7 +452,7 @@ function Booking() {
                                                 <Input name="taxCode" onChange={handleInputChange} />
                                             </Form.Item>
                                         </Col>
-                                        <Col span={12} sm={12} style={{ display: bill === false ? 'none' : '' }}>
+                                        <Col span={12} sm={12} xs={24} style={{ display: bill === false ? 'none' : '' }}>
                                             <Form.Item
                                                 label="Tên công ty"
                                                 name="companyName"
@@ -480,12 +479,17 @@ function Booking() {
                                             </Form.Item>
                                         </Col>
                                     </Row>
-                                    <Button style={{ marginTop: '12px' }} type="primary" htmlType="submit" onClick={handleSubmit}>
-                                        Lưu thông tin
-                                    </Button>
-                                </Form>
+                                    <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', justifyContent: 'space-between', alignItems: 'center', padding: '12px' }}>
+                                        <Button onClick={handleGoBack} type="primary">
+                                            Quay lại
+                                        </Button>
+                                        <Button type="primary" htmlType="submit" onClick={handleSubmitInf}>
+                                            Đặt vé
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </Form>
                     </div>
 
                     {dataBooking.length > 0 && <div className='booking-grid-item'>
@@ -494,13 +498,13 @@ function Booking() {
                                 <BiSolidPlaneAlt />
                                 <p className='header-text text-15'>Chuyến bay</p>
                             </div>
-                            <p className='text-15' style={{color: '#3554d1'}}>Chi tiết</p>
+                            <p className='text-15' style={{ color: '#3554d1' }}>Chi tiết</p>
                         </div>
                         {dataBooking.map((element: BookingType, index) => {
                             const totalFee = element.TotalFeeTaxAdt + element.TotalFeeTaxChd + element.TotalFeeTaxInf
                             return (
                                 <div className='plane-frame'>
-                                    <p className='header-text text-15'>Chuyến bay {index + 1} • {formatNgayThangNam(element.StartDate)}</p>
+                                    <p className='header-text text-15'><button className='continue'>Chuyến bay {index + 1}</button> • {formatNgayThangNam4(element.StartDate)}</p>
                                     <div className='frame-booking-logo'>
                                         {getAirlineLogo(element.ListSegment[0].Airline, '40px')}
                                         <div className='booking-logo-col'>
@@ -560,8 +564,6 @@ function Booking() {
                             </div>
                         </div>
                     </div>}
-
-
                 </div>
             </div>
         </section>

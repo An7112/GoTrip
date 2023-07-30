@@ -4,41 +4,23 @@ import { BiSearch } from 'react-icons/bi'
 import 'slick-carousel/slick/slick.css';
 import { Option } from 'antd/es/mentions';
 import 'slick-carousel/slick/slick-theme.css';
-import { Button, DatePicker, Empty, Form, Input, Modal } from 'antd';
+import { Button, DatePicker, Drawer, Empty, Form, Input, Modal } from 'antd';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import { CiLocationOn } from 'react-icons/ci'
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import {
-    eachMonthOfInterval,
-    format,
-    eachDayOfInterval,
-} from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Dropdown, Select, Switch } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTripType } from 'store/reducers';
-import { formatNgayThangNam2 } from 'utils/custom/custom-format';
+import { convertCity } from 'utils/custom/custom-format';
+import { AiOutlineEdit } from 'react-icons/ai'
 dayjs.extend(customParseFormat);
 dayjs.locale('vi');
 interface TravellersType {
     adults: number,
     children: number,
     room: number,
-}
-
-
-interface OptionType {
-    value: string;
-    label: string;
-    description: string;
-    icon: any
-}
-interface DayItem {
-    date: Date;
-    isActive: boolean;
-    isStart: boolean;
-    isEnd: boolean;
 }
 
 function TopFilter() {
@@ -50,12 +32,11 @@ function TopFilter() {
 
     const todayDate = dayjs()
 
+    const [open, setOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const [onchangeValue, setOnchangeValue] = useState('');
     const [onchangeValueFlyTo, setOnchangeValueFlyTo] = useState('');
-    const [selectedDays, setSelectedDays] = useState<DayItem[]>([]);
-    const [selectedDaysReturn, setSelectedReturn] = useState<DayItem[]>([]);
 
     const url = new URL(window.location.href);
     const searchParams = new URLSearchParams(url.search);
@@ -64,6 +45,8 @@ function TopFilter() {
     const adults = searchParams.get('adults') ?? '';
     const children = searchParams.get('children') ?? '';
     const twoWay = searchParams.get('twoWay')
+    const departDate = searchParams.get('departDate') ?? ''
+    const returnDate = searchParams.get('returnDate') ?? ''
     const Inf = searchParams.get('Inf')
 
     const [flyingFrom, setFlyingFrom] = useState(startPoint)
@@ -73,9 +56,10 @@ function TopFilter() {
         children: 0,
         room: 0
     })
-    const [startDate, setStartDate] = useState<string | null>(null);
-    const [endDate, setEndDate] = useState<string | null>(null);
+    const [startDate, setStartDate] = useState<string>(departDate);
+    const [endDate, setEndDate] = useState<string>(returnDate);
     const [dropdownTravel, setDropdownTravel] = useState(false);
+    const [dropdownTravelMobile, setDropdownTravelMobile] = useState(false);
     const [listFilter, setListFilter] = useState<any[]>([]);
     const [listFilterTo, setListFilterTo] = useState<any[]>([]);
     const [locationActive, setLocationActive] = useState('Việt Nam')
@@ -86,7 +70,6 @@ function TopFilter() {
     const [valueInputTo, setValueInputTo] = useState('')
 
     const flatChildren: any[] = mapOption.flatMap(item => item.children || [])
-
 
     useEffect(() => {
         if (twoWay === 'true') {
@@ -100,7 +83,7 @@ function TopFilter() {
         if (!endDate) return current && current < dayjs().startOf('day');
         const currentDate = dayjs(current).startOf('day');
         const end = dayjs(endDate, 'DDMMYYYY').startOf('day');
-        return currentDate.isSame(end) || currentDate.isAfter(end) || current < dayjs().startOf('day');
+        return currentDate.isAfter(end) || current < dayjs().startOf('day');
     };
 
     const disabledDateEnd = (current: any) => {
@@ -156,7 +139,11 @@ function TopFilter() {
 
     useEffect(() => {
         if (valueInputFrom) {
-            const filteredData = flatChildren.filter((element) => element.label.toLowerCase().includes(valueInputFrom.toLowerCase()))
+            const filteredData = flatChildren.filter(
+                (element) =>
+                    element.label.toLowerCase().includes(valueInputFrom.toLowerCase())
+                    || element.unsigned.toLowerCase().includes(valueInputFrom.toLowerCase())
+                    || element.value.toLowerCase().includes(valueInputFrom.toLowerCase()))
             setListFilter(filteredData)
         } else {
             const filteredData = flatChildren.filter((element) => element.key === locationActive)
@@ -167,7 +154,11 @@ function TopFilter() {
 
     useEffect(() => {
         if (valueInputTo) {
-            const filteredData = flatChildren.filter((element) => element.label.toLowerCase().includes(valueInputTo.toLowerCase()))
+            const filteredData = flatChildren.filter(
+                (element) =>
+                    element.label.toLowerCase().includes(valueInputTo.toLowerCase())
+                    || element.unsigned.toLowerCase().includes(valueInputTo.toLowerCase())
+                    || element.value.toLowerCase().includes(valueInputTo.toLowerCase()))
             setListFilterTo(filteredData)
         } else {
             const filteredData = flatChildren.filter((element) => element.key === locationActiveTo)
@@ -176,38 +167,12 @@ function TopFilter() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [locationActiveTo, valueInputTo])
 
-    const handleDayClick = (day: Date) => {
-        if (selectedDays.length === 0 || (selectedDays.length === 1 && !selectedDays[0].isStart)) {
-            setSelectedDays([{ date: day, isActive: true, isStart: true, isEnd: false }]);
-        } else if (selectedDays.length === 1 && selectedDays[0].isStart) {
-            if (day.getTime() === selectedDays[0].date.getTime()) {
-                setSelectedDays([]);
-            } else if (day > selectedDays[0].date) {
-                const startDate = selectedDays[0].date;
-                const endDate = day;
-                const daysInRange = eachDayOfInterval({ start: startDate, end: endDate });
-                setSelectedDays(
-                    daysInRange.map((d, index) => ({
-                        date: d,
-                        isActive: true,
-                        isStart: index === 0,
-                        isEnd: index === daysInRange.length - 1,
-                    }))
-                );
-            } else {
-                setSelectedDays([{ date: day, isActive: true, isStart: true, isEnd: false }]);
-            }
-        } else {
-            setSelectedDays([]);
-        }
-    };
-
     const handleDateChangeStart = (dates: any) => {
         if (dates) {
             const formattedStartDate = dayjs(dates.toDate()).format('DDMMYYYY');
             setStartDate(formattedStartDate);
         } else {
-            setStartDate(null);
+            setStartDate('');
         }
     };
 
@@ -216,34 +181,7 @@ function TopFilter() {
             const formattedEndDate = dayjs(dates.toDate()).format('DDMMYYYY');
             setEndDate(formattedEndDate);
         } else {
-            setEndDate(null);
-        }
-    };
-
-
-    const handleDayClickReturn = (day: Date) => {
-        if (selectedDaysReturn.length === 0 || (selectedDaysReturn.length === 1 && !selectedDaysReturn[0].isStart)) {
-            setSelectedReturn([{ date: day, isActive: true, isStart: true, isEnd: false }]);
-        } else if (selectedDaysReturn.length === 1 && selectedDaysReturn[0].isStart) {
-            if (day.getTime() === selectedDaysReturn[0].date.getTime()) {
-                setSelectedReturn([]);
-            } else if (day > selectedDaysReturn[0].date) {
-                const startDate = selectedDaysReturn[0].date;
-                const endDate = day;
-                const daysInRange = eachDayOfInterval({ start: startDate, end: endDate });
-                setSelectedReturn(
-                    daysInRange.map((d, index) => ({
-                        date: d,
-                        isActive: true,
-                        isStart: index === 0,
-                        isEnd: index === daysInRange.length - 1,
-                    }))
-                );
-            } else {
-                setSelectedReturn([{ date: day, isActive: true, isStart: true, isEnd: false }]);
-            }
-        } else {
-            setSelectedReturn([]);
+            setEndDate('');
         }
     };
 
@@ -308,36 +246,279 @@ function TopFilter() {
     const validateStatusEnd = tripType ? endDate ? 'success' : 'error' : '';
     const helpEnd = tripType ? endDate ? '' : 'Vui lòng chọn ngày' : '';
 
+    const showDrawer = () => {
+        setOpen(true);
+    };
+
+    const onClose = () => {
+        setOpen(false);
+    };
+
+    const handleSelectChangeFrom = (value: string) => {
+        setFlyingFrom(value);
+        setOpenModalFrom(false);
+    };
+
+    const handleSelectChangeTo = (value: string) => {
+        setFlyingTo(value);
+        setOpenModalTo(false);
+    };
+
     return (
         <section className='list-url-filter'>
-            <div className='container-filter'>
+            <Drawer title="Tìm chuyến bay mới" placement="right" onClose={onClose} open={open}>
+                <div className='container-filter top'>
+                    <div className='top-filter'>
+                        <div className='url-item'>
+                            <div className='inner-url-item' onClick={() => setDropdownOpen(!dropdownOpen)}>
+                                <h4 className="searchMenu__title text-truncate">Chọn nơi xuất phát</h4>
+                                <Button className='custom-button-location' type="ghost" onClick={() => setOpenModalFrom(true)}>
+                                    <CiLocationOn /> {convertOnChangeFrom}
+                                </Button>
+                                <Modal
+                                    title="Chọn nơi xuất phát"
+                                    centered
+                                    onCancel={() => setOpenModalFrom(false)}
+                                    open={openModalFrom}
+                                    footer={null}
+                                >
+                                    <div className='modal-form-flex'>
+                                        <Input
+                                            name='country'
+                                            type='string'
+                                            addonBefore={
+                                                <Form.Item name="countryCode" noStyle>
+                                                    <Select defaultValue="Việt Nam" onChange={(value) => setLocationActive(value)}>
+                                                        {mapOption.map((code) => (
+                                                            <Option key={String(code.id)} value={code.label}>
+                                                                {code.label}
+                                                            </Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+                                            }
+                                            onChange={(value) => setValueInputFrom(value.target.value)}
+                                        />
+                                        <div className='list-item-select'>
+                                            {
+                                                listFilter.length > 0
+                                                    ? listFilter.map((element) => {
+                                                        return (
+                                                            <div className={flyingFrom === element.value ? 'item-select active' : 'item-select'} onClick={() => handleSelectChangeFrom(element.value)}>
+                                                                {element.label}
+                                                            </div>
+                                                        )
+                                                    })
+                                                    : <Empty description={'Không tìm thấy chuyến bay bạn yêu cầu.'} style={{ gridColumn: 'span 4 / span 4' }} />
+                                            }
+                                        </div>
+                                    </div>
+                                </Modal>
+                            </div>
+                        </div>
+                        <div className='url-item'>
+                            <div className='inner-url-item'>
+                                <h4 className="searchMenu__title text-truncate">Chọn nơi đến</h4>
+                                <Button className='custom-button-location' type="ghost" onClick={() => setOpenModalTo(true)}>
+                                    <CiLocationOn /> {convertOnChangeTo}
+                                </Button>
+                                <Modal
+                                    title="Chọn nơi đến"
+                                    centered
+                                    onCancel={() => setOpenModalTo(false)}
+                                    open={openModalTo}
+                                    footer={null}
+                                >
+                                    <div className='modal-form-flex'>
+                                        <Input
+                                            name='phone'
+                                            type='string'
+                                            addonBefore={
+                                                <Form.Item name="countryCode" noStyle>
+                                                    <Select defaultValue="Việt Nam" onChange={(value) => setLocationActiveTo(value)}>
+                                                        {mapOption.map((code) => (
+                                                            <Option key={String(code.id)} value={code.label}>
+                                                                {code.label}
+                                                            </Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+                                            }
+                                            onChange={(value) => setValueInputTo(value.target.value)}
+                                        />
+                                        <div className='list-item-select'>
+                                            {
+                                                listFilterTo.length > 0
+                                                    ? listFilterTo.map((element) => {
+                                                        return (
+                                                            <div className={flyingTo === element.value ? 'item-select active' : 'item-select'} onClick={() => handleSelectChangeTo(element.value)}>
+                                                                {element.label}
+                                                            </div>
+                                                        )
+                                                    })
+                                                    : <Empty description={'Không tìm thấy chuyến bay bạn yêu cầu.'} style={{ gridColumn: 'span 4 / span 4' }} />
+                                            }
+                                        </div>
+                                    </div>
+                                </Modal>
+                            </div>
+                        </div>
+                        <div className='url-item calendar'>
+                            <div className='inner-url-item '>
+                                <h4 className="searchMenu__title text-truncate">Ngày khởi hành</h4>
+                                <DatePicker
+                                    format={formatDate}
+                                    className="custom-range-picker"
+                                    disabledDate={disabledDateStart}
+                                    onChange={handleDateChangeStart}
+                                    showTime={false}
+                                    dateRender={dateRenderStart}
+                                    value={startDate ? dayjs(startDate, 'DDMMYYYY') : undefined}
+                                    placeholder='Chọn ngày'
+                                />
+                            </div>
+                        </div>
+                        <div className='url-item calendar'>
+                            <div className='inner-url-item'>
+                                <h4 className="searchMenu__title text-truncate">Ngày trở lại</h4>
+                                <Form.Item
+                                    validateStatus={validateStatusEnd}
+                                    help={helpEnd}
+                                >
+                                    <DatePicker
+                                        disabled={!tripType}
+                                        format={formatDate}
+                                        dateRender={dateRenderEnd}
+                                        className="custom-range-picker"
+                                        disabledDate={disabledDateEnd}
+                                        onChange={handleDateChangeEnd}
+                                        showTime={false}
+                                        value={endDate ? dayjs(endDate, 'DDMMYYYY') : undefined}
+                                        placeholder="Chọn ngày"
+                                    />
+                                </Form.Item>
+                            </div>
+                        </div>
+                        <div className='url-item'>
+                            <div className='inner-url-item '>
+                                <h4 className="searchMenu__title text-truncate">Chọn khứ hồi</h4>
+                                <Switch checked={tripType} onChange={(value) => dispatch(setTripType((value)))} />
+                            </div>
+                        </div>
+                        <div className='url-item col-9'>
+                            <div className='inner-url-item'>
+                                <h4 className="searchMenu__title text-truncate">Số hành khách</h4>
+                                <Dropdown overlay={
+                                    <div className='multi-select guest'>
+                                        <div className='multi-option'>
+                                            <span className='title'>
+                                                Người lớn
+                                                <div className="filter-item text-truncate" style={{ fontSize: '10px' }}>(từ 12 tuổi)</div>
+                                            </span>
+                                            <div className='list-action'>
+                                                <button className='action' onClick={() => {
+                                                    if (travellers.adults <= 1) {
+                                                        setTravellers(prev => ({ ...prev, adults: + 1 }));
+                                                    } else {
+                                                        setTravellers(prev => ({ ...prev, adults: prev.adults - 1 }));
+                                                    }
+                                                }}>
+                                                    -
+                                                </button>
+                                                <span>{travellers.adults}</span>
+                                                <button className='action' onClick={() => setTravellers(prev => ({ ...prev, adults: prev.adults + 1 }))}>
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className='multi-option center'>
+                                            <span className='title'>
+                                                Trẻ em
+                                                <div className="filter-item text-truncate" style={{ fontSize: '10px' }}>(Từ 2 - 11 tuổi)</div>
+                                            </span>
+                                            <div className='list-action'>
+                                                <button className='action' onClick={() => {
+                                                    if (travellers.children === 0) {
+                                                        setTravellers(prev => ({ ...prev, children: 0 }));
+                                                    } else {
+                                                        setTravellers(prev => ({ ...prev, children: prev.children - 1 }));
+                                                    }
+                                                }}>
+                                                    -
+                                                </button>
+                                                <span>{travellers.children}</span>
+                                                <button className='action' onClick={() => setTravellers(prev => ({ ...prev, children: prev.children + 1 }))}>
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className='multi-option'>
+                                            <span className='title'>
+                                                Em bé
+                                                <div className="filter-item text-truncate" style={{ fontSize: '10px' }}>(dưới 2 tuổi)</div>
+                                            </span>
+                                            <div className='list-action'>
+                                                <button className='action' onClick={() => {
+                                                    if (travellers.room <= 1) {
+                                                        setTravellers(prev => ({ ...prev, room: 0 }));
+                                                    } else {
+                                                        setTravellers(prev => ({ ...prev, room: prev.room - 1 }));
+                                                    }
+                                                }}>
+                                                    -
+                                                </button>
+                                                <span>{travellers.room}</span>
+                                                <button className='action' onClick={() => setTravellers(prev => ({ ...prev, room: prev.room + 1 }))}>
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                } trigger={['click']} visible={dropdownTravelMobile} onVisibleChange={() => setDropdownTravelMobile(!dropdownTravelMobile)}>
+                                    <div className='filter-item text-truncate'>
+                                        {travellers.adults} Người lớn - {travellers.children} Trẻ em - {travellers.room} Em bé
+                                    </div>
+                                </Dropdown>
+                            </div>
+                        </div>
+                        <div className='url-item'>
+                            {tripType && endDate == null
+                                ? <button className='url-button-search disable'>
+                                    <BiSearch />
+                                    <span>Tìm kiếm</span>
+                                </button>
+                                : <button className='url-button-search' onClick={updateUrlWithFilters}>
+                                    <BiSearch />
+                                    <span>Tìm kiếm</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </Drawer>
+            <div className='mini-top-filter'>
+                <div className='mini-filter-flex'>
+                    <p className='dsc-mini-filter'><strong>{tripType === true ? 'Khứ hồi' : 'Một chiều'}</strong> {Number(adults) > 0 && `${adults} Người lớn`} {Number(children) > 0 && `, ${children} Trẻ em`} {Number(Inf) > 0 && `, ${Inf} Em bé`}</p>
+                </div>
+                <div className='mini-filter-flex'>
+                    <p className='dsc-mini-filter'>{convertCity(startPoint)} ({startPoint}) - {convertCity(endPoint)} ({endPoint})</p>
+                    <p className='dsc-mini-filter blue-color' onClick={showDrawer}>Sửa <AiOutlineEdit /></p>
+                </div>
+            </div>
+            <div className='container-filter top'>
                 <div className='top-filter'>
                     <div className='url-item'>
                         <div className='inner-url-item' onClick={() => setDropdownOpen(!dropdownOpen)}>
                             <h4 className="searchMenu__title text-truncate">Chọn nơi xuất phát</h4>
-                            {/* <Select
-                                showSearch
-                                placeholder="Choose where to start"
-                                defaultValue={flyingFrom}
-                                onChange={(value) => setFlyingFrom(value)}
-                                optionLabelProp="children"
-                            >
-                                {options.map((element) => (
-                                    <Option value={element.value}>
-                                        {element.icon} {element.label}
-                                    </Option>
-                                ))}
-
-                            </Select> */}
                             <Button className='custom-button-location' type="ghost" onClick={() => setOpenModalFrom(true)}>
                                 <CiLocationOn /> {convertOnChangeFrom}
                             </Button>
                             <Modal
                                 title="Chọn nơi xuất phát"
                                 centered
-                                open={openModalFrom}
-                                onOk={() => setOpenModalFrom(false)}
                                 onCancel={() => setOpenModalFrom(false)}
+                                open={openModalFrom}
+                                footer={null}
                             >
                                 <div className='modal-form-flex'>
                                     <Input
@@ -361,7 +542,7 @@ function TopFilter() {
                                             listFilter.length > 0
                                                 ? listFilter.map((element) => {
                                                     return (
-                                                        <div className={flyingFrom === element.value ? 'item-select active' : 'item-select'} onClick={() => setFlyingFrom(element.value)}>
+                                                        <div className={flyingFrom === element.value ? 'item-select active' : 'item-select'} onClick={() => handleSelectChangeFrom(element.value)}>
                                                             {element.label}
                                                         </div>
                                                     )
@@ -380,11 +561,11 @@ function TopFilter() {
                                 <CiLocationOn /> {convertOnChangeTo}
                             </Button>
                             <Modal
-                                title="Chọn nơi xuất phát"
+                                title="Chọn nơi đến"
                                 centered
-                                open={openModalTo}
-                                onOk={() => setOpenModalTo(false)}
                                 onCancel={() => setOpenModalTo(false)}
+                                open={openModalTo}
+                                footer={null}
                             >
                                 <div className='modal-form-flex'>
                                     <Input
@@ -408,7 +589,7 @@ function TopFilter() {
                                             listFilterTo.length > 0
                                                 ? listFilterTo.map((element) => {
                                                     return (
-                                                        <div className={flyingTo === element.value ? 'item-select active' : 'item-select'} onClick={() => setFlyingTo(element.value)}>
+                                                        <div className={flyingTo === element.value ? 'item-select active' : 'item-select'} onClick={() => handleSelectChangeTo(element.value)}>
                                                             {element.label}
                                                         </div>
                                                     )
@@ -429,6 +610,7 @@ function TopFilter() {
                                 disabledDate={disabledDateStart}
                                 onChange={handleDateChangeStart}
                                 showTime={false}
+                                value={startDate ? dayjs(startDate, 'DDMMYYYY') : undefined}
                                 dateRender={dateRenderStart}
                                 placeholder='Chọn ngày'
                             />
@@ -449,6 +631,7 @@ function TopFilter() {
                                     disabledDate={disabledDateEnd}
                                     onChange={handleDateChangeEnd}
                                     showTime={false}
+                                    value={endDate ? dayjs(endDate, 'DDMMYYYY') : undefined}
                                     placeholder="Chọn ngày"
                                 />
                             </Form.Item>
@@ -463,7 +646,7 @@ function TopFilter() {
                     <div className='url-item col-9'>
                         <div className='inner-url-item'>
                             <h4 className="searchMenu__title text-truncate">Số hành khách</h4>
-                            <Dropdown overlay={
+                            <Dropdown className='top-filter-dropdown' overlay={
                                 <div className='multi-select guest'>
                                     <div className='multi-option'>
                                         <span className='title'>

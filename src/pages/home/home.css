@@ -321,6 +321,7 @@
 }
 
 .one-col{
+    width: 100%;
     display: flex;
     flex-direction: column;
 }
@@ -478,10 +479,10 @@
 }
 
 .multi-option .title{
-    /* width: 85px; */
+    width: 85px;
     font-weight: 500;
     margin-right: 1rem;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .multi-option .list-action{
@@ -518,6 +519,10 @@
 }
 
 .multi-select.guest{
+    /* position: relative; */
+    /* left: 12px; */
+    z-index: 1;
+    position: relative;
     padding: 4px 24px;
 }
 
@@ -593,6 +598,7 @@
     border-radius: 4px;
     display: flex;
     height: 40px;
+    font-size: 13px;
     overflow: hidden;
     align-items: center;
     justify-content: center;
@@ -671,7 +677,7 @@
 
 @media (max-width: 400px){
     .multi-option .title{
-        font-size: 8px !important;
+        font-size: 12px !important;
     }
     .list-action .action{
         padding: 4px 10px;
@@ -679,6 +685,9 @@
     .multi-option{
         max-width: 100%;
         overflow-x: scroll;
+    }
+    .searchMenu-loc{
+        padding: 12px 12px 0 12px !important;
     }
 }
 
@@ -742,11 +751,11 @@
     }
 
     .searchMenu__title{
-        font-size: 13px;
+        font-size: 14px;
     }
 
     .filter-item{
-        font-size: 12px;
+        font-size: 14px;
     }
 }
 
@@ -758,6 +767,25 @@
         position: static;
     }
 }
+
+@media (max-width: 470px){
+    .list-item-select{
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 340px){
+    .list-item-select{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 250px){
+    .list-item-select{
+        grid-template-columns: 1fr;
+    }
+}
+
 
 /* @media (max-width: 1018px){
     .searchMenu-loc{
@@ -771,10 +799,16 @@
 
 @media (max-width: 490px){
     .searchMenu-loc{
-        padding: 0 30px;
+        padding: 12px 30px 0 30px;
         grid-column: span 8 / span 8;
     }
     .searchMenu-loc.col-2{
         grid-column: span 8 / span 8;
+    }
+}
+
+@media (max-width: 320px){
+    .multi-option .title{
+        width: 80px;
     }
 }

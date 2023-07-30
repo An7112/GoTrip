@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { CiLocationOn } from 'react-icons/ci'
 import { BiSearch } from 'react-icons/bi'
 import 'slick-carousel/slick/slick.css';
-import { Dropdown, DatePicker, Select, Switch, Form, TabsProps, Tabs, Button, Modal, Input, Empty } from 'antd';
+import { Dropdown, DatePicker, Select, Switch, Form, Button, Modal, Input, Empty } from 'antd';
 import 'slick-carousel/slick/slick-theme.css';
 import dayjs from 'dayjs';
 import './home.css'
 import 'dayjs/locale/vi';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import SectionPopular from './section-popular/section-popular';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { OptionType } from 'modal/index';
 import { dataCountry, mapOption } from 'utils/data-country';
 const { Option } = Select;
 
@@ -20,15 +19,15 @@ dayjs.locale('vi');
 function Home() {
 
     const todayDate = dayjs()
+    const history = useNavigate()
 
     const [adults, setAdults] = useState(1)
     const [children, setChildren] = useState(0)
     const [rooms, setRooms] = useState(0)
-    const [startDate, setStartDate] = useState<string | null>(null);
-    const [endDate, setEndDate] = useState<string | null>(null);
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
     const [validateStatus, setValidateStatus] = useState<'success' | 'error'>('success')
     const [help, setHelp] = useState('')
-    const [tabValue, setTabValue] = useState('1')
     const [openModalFrom, setOpenModalFrom] = useState(false);
     const [openModalTo, setOpenModalTo] = useState(false);
     const [valueInputFrom, setValueInputFrom] = useState('')
@@ -37,6 +36,10 @@ function Home() {
     const [listFilterTo, setListFilterTo] = useState<any[]>([]);
     const [locationActive, setLocationActive] = useState('Việt Nam')
     const [locationActiveTo, setLocationActiveTo] = useState('Việt Nam')
+    const [dropdownGuest, setDropdownGuest] = useState(false);
+    const [onchangeValueDepart, setOnchangeValueDepart] = useState('DAD');
+    const [onchangeValueToReturn, setOnchangeValueToReturn] = useState('SGN');
+    const [twoWay, setTwoWay] = useState(false)
 
     const flatChildren: any[] = mapOption.flatMap(item => item.children || [])
 
@@ -44,7 +47,7 @@ function Home() {
         if (!endDate) return current && current < dayjs().startOf('day');
         const currentDate = dayjs(current).startOf('day');
         const end = dayjs(endDate, 'DDMMYYYY').startOf('day');
-        return currentDate.isSame(end) || currentDate.isAfter(end) || current < dayjs().startOf('day');
+        return currentDate.isAfter(end) || current < dayjs().startOf('day');
     };
 
     const disabledDateEnd = (current: any) => {
@@ -55,8 +58,27 @@ function Home() {
     }
 
     useEffect(() => {
+        if (valueInputFrom) {
+            const filteredData = flatChildren.filter(
+                (element) =>
+                    element.label.toLowerCase().includes(valueInputFrom.toLowerCase())
+                    || element.unsigned.toLowerCase().includes(valueInputFrom.toLowerCase())
+                    || element.value.toLowerCase().includes(valueInputFrom.toLowerCase()))
+            setListFilter(filteredData)
+        } else {
+            const filteredData = flatChildren.filter((element) => element.key === locationActive)
+            setListFilter(filteredData)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [locationActive, valueInputFrom])
+
+    useEffect(() => {
         if (valueInputTo) {
-            const filteredData = flatChildren.filter((element) => element.label.toLowerCase().includes(valueInputTo.toLowerCase()))
+            const filteredData = flatChildren.filter(
+                (element) =>
+                    element.label.toLowerCase().includes(valueInputTo.toLowerCase())
+                    || element.unsigned.toLowerCase().includes(valueInputTo.toLowerCase())
+                    || element.value.toLowerCase().includes(valueInputTo.toLowerCase()))
             setListFilterTo(filteredData)
         } else {
             const filteredData = flatChildren.filter((element) => element.key === locationActiveTo)
@@ -65,16 +87,20 @@ function Home() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [locationActiveTo, valueInputTo])
 
+
     useEffect(() => {
-        if (valueInputFrom) {
-            const filteredData = flatChildren.filter((element) => element.label.toLowerCase().includes(valueInputFrom.toLowerCase()))
-            setListFilter(filteredData)
-        } else {
-            const filteredData = flatChildren.filter((element) => element.key === locationActive)
-            setListFilter(filteredData)
+        const defaultValue = JSON.parse(localStorage.getItem('filterHome') ?? '')
+        if (defaultValue) {
+            setOnchangeValueDepart(defaultValue.startPoint)
+            setOnchangeValueToReturn(defaultValue.endPoint)
+            setAdults(Number(defaultValue.adults))
+            setChildren(Number(defaultValue.children))
+            setRooms(Number(defaultValue.Inf))
+            setTwoWay(defaultValue.twoWay === String(true) ? true : false)
+            setStartDate(defaultValue.departDate)
+            setEndDate(defaultValue.returnDate)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [locationActive, valueInputFrom])
+    }, [])
 
     useEffect(() => {
         if (startDate == null) {
@@ -87,12 +113,12 @@ function Home() {
         if (dates) {
             const formattedStartDate = dayjs(dates.toDate()).format('DDMMYYYY');
             setStartDate(formattedStartDate);
-            setValidateStatus('success')
-            setHelp('')
+            setValidateStatus('success');
+            setHelp('');
         } else {
-            setStartDate(null);
-            setValidateStatus('error')
-            setHelp('Vui lòng chọn ngày')
+            setStartDate('');
+            setValidateStatus('error');
+            setHelp('Vui lòng chọn ngày');
         }
     };
 
@@ -101,7 +127,7 @@ function Home() {
             const formattedEndDate = dayjs(dates.toDate()).format('DDMMYYYY');
             setEndDate(formattedEndDate);
         } else {
-            setEndDate(null);
+            setEndDate('');
         }
     };
 
@@ -109,19 +135,10 @@ function Home() {
         return dayjs(date).format('dddd DD [thg] M').replace(/\b\w/, (char) => char.toUpperCase());
     };
 
-    const [dropdownGuest, setDropdownGuest] = useState(false);
-    const [onchangeValueDepart, setOnchangeValueDepart] = useState('DAD');
-    const [onchangeValueToReturn, setOnchangeValueToReturn] = useState('SGN');
-    const [twoWay, setTwoWay] = useState(false)
-
     const isStartNull = dayjs(todayDate.toDate()).format('DDMMYYYY')
-
-    // const isEndNull =   dayjs(startDate).add(1, 'day').format('DDMMYYYY')
     const filters = {
         startPoint: onchangeValueDepart,
         endPoint: onchangeValueToReturn,
-        // startPointR: onchangeValue,
-        // endPointR: onchangeValueDepart,
         adults: String(adults) ?? '',
         children: String(children) ?? '',
         Inf: String(rooms) ?? '',
@@ -184,12 +201,23 @@ function Home() {
     const validateStatusEnd = endDate && twoWay ? 'success' : 'error';
     const helpEnd = endDate && twoWay ? '' : 'Vui lòng chọn ngày';
 
-    useEffect(() => {
-        setTwoWay(false)
-    }, [tabValue])
-
     const convertOnChangeFrom: string = dataCountry.find((element) => element.code === onchangeValueDepart)?.city ?? ''
     const convertOnChangeTo: string = dataCountry.find((element) => element.code === onchangeValueToReturn)?.city ?? ''
+
+    const handleSelectChangeFrom = (value: string) => {
+        setOnchangeValueDepart(value);
+        setOpenModalFrom(false);
+    };
+
+    const handleSelectChangeTo = (value: string) => {
+        setOnchangeValueToReturn(value);
+        setOpenModalTo(false);
+    };
+
+    const jumpPage = () => {
+        localStorage.setItem('filterHome', JSON.stringify(filters))
+        history(`/filtered?${queryParams}`)
+    }
 
     return (
         <div className='page-main'>
@@ -218,8 +246,8 @@ function Home() {
                                                         title="Chọn nơi xuất phát"
                                                         centered
                                                         open={openModalFrom}
-                                                        onOk={() => setOpenModalFrom(false)}
                                                         onCancel={() => setOpenModalFrom(false)}
+                                                        footer={null}
                                                     >
                                                         <div className='modal-form-flex'>
                                                             <Input
@@ -243,7 +271,7 @@ function Home() {
                                                                     listFilter.length > 0
                                                                         ? listFilter.map((element) => {
                                                                             return (
-                                                                                <div className={onchangeValueDepart === element.value ? 'item-select active' : 'item-select'} onClick={() => setOnchangeValueDepart(element.value)}>
+                                                                                <div className={onchangeValueDepart === element.value ? 'item-select active' : 'item-select'} onClick={() => handleSelectChangeFrom(element.value)}>
                                                                                     {element.label}
                                                                                 </div>
                                                                             )
@@ -260,11 +288,11 @@ function Home() {
                                                         <CiLocationOn /> {convertOnChangeTo}
                                                     </Button>
                                                     <Modal
-                                                        title="Chọn nơi xuất phát"
+                                                        title="Chọn nơi đến"
                                                         centered
                                                         open={openModalTo}
-                                                        onOk={() => setOpenModalTo(false)}
                                                         onCancel={() => setOpenModalTo(false)}
+                                                        footer={null}
                                                     >
                                                         <div className='modal-form-flex'>
                                                             <Input
@@ -288,7 +316,7 @@ function Home() {
                                                                     listFilterTo.length > 0
                                                                         ? listFilterTo.map((element) => {
                                                                             return (
-                                                                                <div className={onchangeValueToReturn === element.value ? 'item-select active' : 'item-select'} onClick={() => setOnchangeValueToReturn(element.value)}>
+                                                                                <div className={onchangeValueToReturn === element.value ? 'item-select active' : 'item-select'} onClick={() => handleSelectChangeTo(element.value)}>
                                                                                     {element.label}
                                                                                 </div>
                                                                             )
@@ -301,7 +329,7 @@ function Home() {
                                                 </div>
                                                 <div className='searchMenu-loc col-2'>
                                                     <h4 className='searchMenu__title'>Chọn khứ hồi</h4>
-                                                    <Switch onChange={(value) => setTwoWay(value)} />
+                                                    <Switch checked={twoWay} onChange={(value) => setTwoWay(value)} />
                                                 </div>
                                                 <div className='searchMenu-loc hidden'>
                                                     <div className='one-col'>
@@ -317,31 +345,29 @@ function Home() {
                                                                 onChange={handleDateChangeStart}
                                                                 showTime={false}
                                                                 dateRender={dateRenderStart}
-                                                                defaultValue={todayDate}
+                                                                value={startDate ? dayjs(startDate, 'DDMMYYYY') : undefined}
                                                                 placeholder='Chọn ngày'
                                                             />
                                                         </Form.Item>
                                                     </div>
-                                                    {twoWay === true
-                                                        &&
-                                                        <div className='one-col'>
-                                                            <h4 className='searchMenu__title'>Ngày trở lại</h4>
-                                                            <Form.Item
-                                                                validateStatus={validateStatusEnd}
-                                                                help={helpEnd}
-                                                            >
-                                                                <DatePicker
-                                                                    format={formatDate}
-                                                                    dateRender={dateRenderEnd}
-                                                                    className="custom-range-picker"
-                                                                    disabledDate={disabledDateEnd}
-                                                                    onChange={handleDateChangeEnd}
-                                                                    showTime={false}
-                                                                    placeholder="Chọn ngày"
-                                                                />
-                                                            </Form.Item>
-                                                        </div>
-                                                    }
+                                                    <div className='one-col' style={{ display: twoWay === true ? '' : 'none' }}>
+                                                        <h4 className='searchMenu__title'>Ngày trở lại</h4>
+                                                        <Form.Item
+                                                            validateStatus={validateStatusEnd}
+                                                            help={helpEnd}
+                                                        >
+                                                            <DatePicker
+                                                                format={formatDate}
+                                                                dateRender={dateRenderEnd}
+                                                                className="custom-range-picker"
+                                                                disabledDate={disabledDateEnd}
+                                                                onChange={handleDateChangeEnd}
+                                                                showTime={false}
+                                                                value={endDate ? dayjs(endDate, 'DDMMYYYY') : undefined}
+                                                                placeholder="Chọn ngày"
+                                                            />
+                                                        </Form.Item>
+                                                    </div>
 
                                                 </div>
 
@@ -422,23 +448,19 @@ function Home() {
                                                 <div className='searchMenu-loc col-2'>
                                                     {twoWay
                                                         ? startDate && endDate
-                                                            ? <Link to={`/filtered?${queryParams}`}>
-                                                                <button className='action-search'>
-                                                                    <BiSearch />
-                                                                    <span>Tìm kiếm</span>
-                                                                </button>
-                                                            </Link>
+                                                            ? <button className='action-search' onClick={jumpPage}>
+                                                                <BiSearch />
+                                                                <span>Tìm kiếm</span>
+                                                            </button>
                                                             : <button className='action-search disable'>
                                                                 <BiSearch />
                                                                 <span>Tìm kiếm</span>
                                                             </button>
                                                         : validateStatus === 'success'
-                                                            ? <Link to={`/filtered?${queryParams}`}>
-                                                                <button className='action-search'>
-                                                                    <BiSearch />
-                                                                    <span>Tìm kiếm</span>
-                                                                </button>
-                                                            </Link>
+                                                            ? <button className='action-search' onClick={jumpPage}>
+                                                                <BiSearch />
+                                                                <span>Tìm kiếm</span>
+                                                            </button>
                                                             : <button className='action-search disable'>
                                                                 <BiSearch />
                                                                 <span>Tìm kiếm</span>

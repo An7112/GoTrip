@@ -1,10 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import './section-popular.css'
 import './section-slider.css'
 import Slider from 'react-slick';
-import { formatNgayThangNam2, formatNgayThangNam3, formatNgayThangNam4 } from 'utils/custom/custom-format';
-import { useDispatch, useSelector } from 'react-redux';
-import { setDateTrendActive } from 'store/reducers';
+import { formatNgayThangNam4 } from 'utils/custom/custom-format';
 import { useNavigate } from 'react-router-dom';
 
 function SampleNextArrow(props: any) {

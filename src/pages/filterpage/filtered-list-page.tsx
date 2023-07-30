@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './filtered-list-page.css'
-import { DatePicker, Skeleton, Slider, Spin } from 'antd';
-import { HiOutlineArrowsUpDown } from 'react-icons/hi2'
+import { Skeleton, Slider, Spin } from 'antd';
 import PaginatedList from 'component/pagination/paginated-list';
 import md5 from 'md5';
 import axios from 'axios';
@@ -9,9 +8,8 @@ import {
     format,
 } from 'date-fns';
 import TopFilter from './top-filter/top-filter';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { BiFilterAlt, BiSortDown } from 'react-icons/bi'
-import { TbBrandBooking, TbLayoutGridRemove } from 'react-icons/tb'
 import { LoadingFrame } from 'component/loading-frame/loadingFrame';
 import { dataCountry } from 'utils/data-country';
 import { Tabs, Drawer } from 'antd';
@@ -19,12 +17,11 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import weekday from 'dayjs/plugin/weekday';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import { FaRegCalendarAlt } from 'react-icons/fa'
 import LoadingBar from 'component/loading-bar/loading-bar';
 import SliderDateTrend from './slider/slider-date-trend';
 import { useDispatch, useSelector } from 'react-redux';
 import MiniBooking from './mini-booking/mini-booking';
-import { setAllData, setAllDataTwo, setBooking, setListGeoCodeOneTrip, setListGeoCodeTwoTrip } from 'store/reducers';
+import { setAllData, setAllDataTwo, setListGeoCodeOneTrip, setListGeoCodeTwoTrip } from 'store/reducers';
 import { formatNgayThangNam3, getAirlineFullName } from 'utils/custom/custom-format';
 import SliderDateTrendReturn from './slider/slider-date-trend-return';
 dayjs.extend(customParseFormat);
@@ -62,7 +59,7 @@ function FilteredListPage() {
     const inf = searchParams.get('Inf') ?? '';
     const [open, setOpen] = useState(false);
 
-    const { tripType, booking, outPage } = useSelector((state: any) => state)
+    const { tripType } = useSelector((state: any) => state)
     const dispatch = useDispatch()
 
     const location = useLocation();
@@ -127,6 +124,7 @@ function FilteredListPage() {
     };
 
     const fetchData = async () => {
+        console.log('Goi')
         const convert = dataCountry.find((element) => element.code === endPoint)?.city ?? ''
         const convertReturn = dataCountry.find((element) => element.code === startPoint)?.city ?? ''
         setFlyingTo(convert)
@@ -367,6 +365,7 @@ function FilteredListPage() {
 
     useEffect(() => {
         fetchData2()
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location, statusOpenTab2])
 
@@ -392,18 +391,6 @@ function FilteredListPage() {
             setStatusOpenTab2(true)
         }
     }, [tripType])
-
-    useEffect(() => {
-        const existingValue = JSON.parse(localStorage.getItem('outPage') || 'false');
-        const existingTripType = tripType
-        const existingLength = booking.length
-        if (existingTripType === true && existingLength > 1 && existingValue === true) {
-            window.open('/booking', '_blank')
-        }
-        if (existingTripType === false && existingLength === 1 && existingValue === true) {
-            window.open('/booking', '_blank')
-        }
-    }, [tripType, booking, dispatch, outPage])
 
     useEffect(() => {
         if (tripType) {
@@ -453,10 +440,7 @@ function FilteredListPage() {
         }
     }, [filters, paginatedData, paginatedData2, tripType]);
 
-    console.log(filteredData)
-
     const handleNumberChange = (number: number) => {
-        console.log(number)
         setPageRevert(number)
     };
 
@@ -934,25 +918,44 @@ function FilteredListPage() {
                                         }
                                     </div>
                                 </div>
-                                <div className='flex-row'>
+                                <div className='flex-row bottom'>
                                     <div className='frame-action-booking'>
-                                        <span className="content text-14"><span style={{ color: '#85898d' }}>Sắp xếp theo:</span> Giá chuyến bay</span>
-                                        <BiSortDown onClick={handleSort} style={{ fontSize: '20px', cursor: 'pointer' }} />
-                                        <button className='sort-action filter' onClick={() => setOpen(true)}>
+                                        <div className='frame-sort-action'>
+                                            <span className="content text-14"><span style={{ color: '#85898d' }}>Sắp xếp theo:</span> Giá chuyến bay</span>
+                                            <BiSortDown onClick={handleSort} style={{ fontSize: '20px', cursor: 'pointer' }} />
+                                        </div>
+                                        <button className='sort-action filter fixed' onClick={() => setOpen(true)}>
                                             <BiFilterAlt />
-                                            Filter
+                                            Bộ lọc
+                                        </button>
+                                        <button className='sort-action sort fixed' onClick={() => setOpen(true)}>
+                                            <BiFilterAlt />
+                                            Sắp xếp
                                         </button>
                                     </div>
                                     <div className='frame-action-booking'>
                                         <span className="content text-14"><span style={{ color: '#85898d' }}>Giá đã bao gồm Thuế & một số phí / VND / cho 1 khách</span></span>
                                     </div>
                                 </div>
-                            </div>
 
+                            </div>
+                            <div className='flex-row fixed'>
+                                <div className='frame-action-booking'>
+                                    <button className='sort-action filter fixed' onClick={() => setOpen(true)}>
+                                        <BiFilterAlt />
+                                        Bộ lọc
+                                    </button>
+                                    <button className='sort-action sort fixed' onClick={handleSort}>
+                                        <BiSortDown />
+                                        Sắp xếp
+                                    </button>
+                                </div>
+                            </div>
                             <Tabs
                                 defaultActiveKey="1"
                                 onChange={(value) => setPageRevert(Number(value))}
                                 activeKey={String(pageRevert)}
+                                className='custom-tabs'
                                 items={[
                                     {
                                         label: 'Chuyến đi',
