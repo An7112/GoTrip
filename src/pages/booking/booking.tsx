@@ -516,7 +516,7 @@ function Booking() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className='flex-center-item'>
+                                    <div className='flex-center-item booking'>
                                         <div className='item-col fix-content'>
                                             <h4 className="searchMenu__title text-truncate">{element.StartTime}</h4>
                                             <p className="filter-item text-truncate">{convertCity(element.StartPoint)} ({element.StartPoint})</p>

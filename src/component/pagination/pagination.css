@@ -349,7 +349,7 @@
 .tab-footer{
     display: flex;
     flex-direction: row;
-    gap: 48px;
+    gap: 12px;
     align-items: center;
 }
 
@@ -465,6 +465,21 @@
 @media (max-width: 768px) {
     .paginated-main {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 406px){
+    .tab-footer{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    .tab-footer .gr-flex{
+        grid-column: span 2 / span 2;
+    }
+    .tab-footer a{
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
     }
 }
 

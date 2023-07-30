@@ -217,7 +217,7 @@
         padding: 0 12px;
     }
 
-    .flex-center-item .item-col{
+    .flex-center-item.booking{
         overflow: hidden;
     }
   }

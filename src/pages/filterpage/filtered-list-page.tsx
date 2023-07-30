@@ -890,6 +890,33 @@ function FilteredListPage() {
                             </div>
                             <div className='line-row'>
                             </div>
+                            <div className='gr-filter'>
+                                    <h5 className='filter-title'>Flight Times 2</h5>
+                                    <div className='gr-flex-col'>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Take-off</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='gr-flex-col'>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                <p className='filter-item text-truncate'>01:00</p>
+                                            </div>
+                                            <p className='filter-item text-truncate'>{timeLine}</p>
+                                        </div>
+                                    </div>
+                                    <div className='gr-flex-col'>
+                                        <Slider
+                                            step={30}
+                                            min={60}
+                                            max={1440}
+                                            onChange={onChangeTimeline}
+                                            tooltip={{ formatter: null }}
+                                        />
+                                    </div>
+                                </div>
                         </div>
                         <div className='frame-paginated-flex'>
                             <div className='flex-col-top'>
