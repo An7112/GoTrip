@@ -104,21 +104,21 @@ function TopFilter() {
         }
     }, [startDate, todayDate])
 
-    const filters = {
-        startPoint: flyingFrom,
-        endPoint: flyingTo,
-        adults: String(travellers.adults) ?? '',
-        children: String(travellers.children) ?? '',
-        Inf: String(travellers.room) ?? '',
-        departDate: startDate ?? '',
-        returnDate: endDate ?? '',
-        twoWay: tripType
-    };
-
     const updateUrlWithFilters = () => {
+        const filters = {
+            startPoint: flyingFrom,
+            endPoint: flyingTo,
+            adults: String(travellers.adults) ?? '',
+            children: String(travellers.children) ?? '',
+            Inf: String(travellers.room) ?? '',
+            departDate: startDate ?? '',
+            returnDate: endDate ?? '',
+            twoWay: tripType
+        };
         setOpen(false)
-        const queryParams = new URLSearchParams(filters);
-        history(`/filtered?${queryParams.toString()}`);
+        const queryParams = new URLSearchParams(filters).toString();
+        const queryString = encodeURIComponent(queryParams)
+        history(`/filtered?${queryString}`);
     };
 
     const getDefaultFilter = () => {
