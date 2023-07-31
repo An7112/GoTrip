@@ -436,7 +436,7 @@ function Booking() {
                                                 <Input name="email" onChange={handleInputChange} />
                                             </Form.Item>
                                         </Col>
-                                        <Col span={24} sm={24} style={{marginBottom:'12px'}}>
+                                        <Col span={24} sm={24} style={{ marginBottom: '12px' }}>
                                             <Checkbox onChange={(value) => setBill(value.target.checked)}>Yêu cầu xuất hóa đơn</Checkbox>
                                         </Col>
                                         <Col span={12} sm={12} xs={24} style={{ display: bill === false ? 'none' : '' }}>
@@ -535,18 +535,18 @@ function Booking() {
                                         </div>
                                     </div>
                                     <div className='frame-price'>
-                                        <div className='price-item'>
+                                        {element.Adt > 0 && <div className='price-item'>
                                             <p className='title'>Vé người lớn</p>
                                             <p className='title'>{element.Adt} x {element.FareAdt.toLocaleString("vi-VN")} {element.Currency}</p>
-                                        </div>
-                                        <div className='price-item'>
+                                        </div>}
+                                        {element.Chd > 0 && <div className='price-item'>
                                             <p className='title'>Vé người trẻ em</p>
                                             <p className='title'>{element.Chd} x {element.FareChd.toLocaleString("vi-VN")} {element.Currency}</p>
-                                        </div>
-                                        <div className='price-item'>
+                                        </div>}
+                                        {element.Inf > 0 && <div className='price-item'>
                                             <p className='title'>Vé em bé</p>
                                             <p className='title'>{element.Inf} x {element.FareInf.toLocaleString("vi-VN")} {element.Currency}</p>
-                                        </div>
+                                        </div>}
                                         <div className='price-item'>
                                             <p className='title'>Tổng thuế và phí</p>
                                             <p className='title'>{totalFee.toLocaleString("vi-VN")} {element.Currency}</p>

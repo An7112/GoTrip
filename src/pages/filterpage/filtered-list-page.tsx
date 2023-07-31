@@ -101,6 +101,7 @@ function FilteredListPage() {
     const loadingRef = useRef(false);
     const intervalRef = useRef<number>();
     const [selectedFlight, setSelectedFlight] = useState<FlightTime[]>([]);
+    const [selectedFlightEnd, setSelectedFlightEnd] = useState<FlightTime[]>([]);
 
     const apiUrl = "http://plugin.datacom.vn/flightsearch";
 
@@ -415,6 +416,20 @@ function FilteredListPage() {
         }
     };
 
+    const handleItemClickEnd = (item: FlightTime) => {
+        const itemIndex = selectedFlightEnd.findIndex(
+            (selectedFlight) => selectedFlight.label === item.label
+        );
+        if (itemIndex === -1) {
+            setSelectedFlightEnd([...selectedFlightEnd, item]);
+        } else {
+            const updatedItems = [...selectedFlightEnd];
+            updatedItems.splice(itemIndex, 1);
+            setSelectedFlightEnd(updatedItems);
+        }
+    };
+
+    console.log(selectedFlightEnd)
     const formatTime = (timeString: any) => {
         const [hour, minute] = timeString.split(':').map(Number);
         const date = new Date();
@@ -450,6 +465,8 @@ function FilteredListPage() {
 
     useEffect(() => {
         const { startTime: minStartTime, endTime: maxEndTime } = getMinMaxTimes(selectedFlight);
+        const { startTime: minStartTimeEnd, endTime: maxEndTimeEnd } = getMinMaxTimes(selectedFlightEnd);
+
         if (tripType) {
             const filteredData = paginatedData.filter((item) => {
                 const isAirlineMatch = filters.airline.length === 0 || item.ListSegment.some((segment: any) => filters.airline.includes(segment.Airline));
@@ -462,9 +479,22 @@ function FilteredListPage() {
                 const isStopsMatch = filters.stops.length === 0 || filters.stops.includes(getNumberOfStops(item));
 
                 const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
-                const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
+                const isEndTimeMatch = selectedFlight.length === 0 || (maxEndTime !== null && formatTime(item.StartTime) <= maxEndTime);
 
-                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch && isStartTimeMatch && isEndTimeMatch;
+                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
+                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
+
+                return isAirlineMatch 
+                && isCabinMatch 
+                && isHandBaggageMatch 
+                && isPromoMatch 
+                && isItemStartTimeMatch 
+                && isStopsMatch 
+                && isStartTimeMatch 
+                && isEndTimeMatch
+                && isStartTimeMatchEnd
+                && isEndTimeMatchEnd
+                ;
             });
 
             const filteredData2 = paginatedData2.filter((item) => {
@@ -480,7 +510,20 @@ function FilteredListPage() {
                 const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
                 const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
 
-                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch && isStartTimeMatch && isEndTimeMatch;
+                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
+                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
+
+                return isAirlineMatch 
+                && isCabinMatch 
+                && isHandBaggageMatch 
+                && isPromoMatch 
+                && isItemStartTimeMatch 
+                && isStopsMatch 
+                && isStartTimeMatch 
+                && isEndTimeMatch
+                && isStartTimeMatchEnd
+                && isEndTimeMatchEnd
+                ;
             });
 
             setFilteredData2(filteredData2);
@@ -499,12 +542,25 @@ function FilteredListPage() {
                 const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
                 const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
 
-                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch && isStartTimeMatch && isEndTimeMatch;
+                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
+                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
+
+                return isAirlineMatch 
+                && isCabinMatch 
+                && isHandBaggageMatch 
+                && isPromoMatch 
+                && isItemStartTimeMatch 
+                && isStopsMatch 
+                && isStartTimeMatch 
+                && isEndTimeMatch
+                && isStartTimeMatchEnd
+                && isEndTimeMatchEnd
+                ;
             });
 
             setFilteredData(filteredData);
         }
-    }, [filters, paginatedData, paginatedData2, tripType, selectedFlight]);
+    }, [filters, paginatedData, paginatedData2, tripType, selectedFlight, selectedFlightEnd]);
 
     const handleNumberChange = (number: number) => {
         setPageRevert(number)
@@ -702,7 +758,7 @@ function FilteredListPage() {
                                 </div>
                                 <div className='line-row'>
                                 </div>
-                                <div className='gr-filter'>
+                                {/* <div className='gr-filter'>
                                     <h5 className='filter-title'>Flight Times</h5>
                                     <div className='gr-flex-col'>
                                         <div className='flex-col-item'>
@@ -728,8 +784,73 @@ function FilteredListPage() {
                                             tooltip={{ formatter: null }}
                                         />
                                     </div>
-                                </div>
-                                <div className='line-row'>
+                                </div> */}
+                                <div className='gr-filter' style={{ maxHeight: 'none' }}>
+                                    <h5 className='filter-title'>Flight Times</h5>
+                                    <div className='gr-flex-col'>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Take off</p>
+                                            </div>
+                                        </div>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                {selectedFlight.length === 4 || selectedFlight.length === 0
+                                                    ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
+                                                    : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
+                                                        {selectedFlight.map((element) => element.label).join(', ')}
+                                                    </p>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='gr-flex-col'>
+                                        <div className='grid-item'>
+                                            {flightTimesMap.map((element) => {
+                                                const active = selectedFlight.some(
+                                                    (selectedItem) => selectedItem.label === element.label
+                                                )
+                                                return (
+                                                    <div onClick={() => handleItemClick(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                        <p className='text-14'>{element.label}</p>
+                                                        <p className='text-14'>{element.startTime} - {element.endTime}</p>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className='gr-flex-col'>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Landing time</p>
+                                            </div>
+                                        </div>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                {selectedFlightEnd.length === 4 || selectedFlightEnd.length === 0
+                                                    ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
+                                                    : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
+                                                        {selectedFlightEnd.map((element) => element.label).join(', ')}
+                                                    </p>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='gr-flex-col'>
+                                        <div className='grid-item'>
+                                            {flightTimesMap.map((element) => {
+                                                const active = selectedFlightEnd.some(
+                                                    (selectedItem) => selectedItem.label === element.label
+                                                )
+                                                return (
+                                                    <div onClick={() => handleItemClickEnd(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                        <p className='text-14'>{element.label}</p>
+                                                        <p className='text-14'>{element.startTime} - {element.endTime}</p>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -737,7 +858,7 @@ function FilteredListPage() {
                 </Drawer>
                 <div className='container-filter'>
                     {loading && <LoadingBar progress={progress} />}
-                    <MiniBooking />
+                    {tripType === true && <MiniBooking />}
                     <div className='frame-filter-flex'>
                         <div className='list-gr-filter visible'>
                             <div className='gr-filter'>
@@ -922,7 +1043,7 @@ function FilteredListPage() {
                             </div>
                             <div className='line-row'>
                             </div>
-                            <div className='gr-filter'>
+                            {/* <div className='gr-filter'>
                                 <h5 className='filter-title'>Flight Times</h5>
                                 {loading
                                     ? <Skeleton paragraph={{ rows: 4 }} active />
@@ -953,44 +1074,74 @@ function FilteredListPage() {
                                         </div>
                                     </>
                                 }
-                            </div>
-                            <div className='line-row'>
-                            </div>
+                            </div> */}
                             <div className='gr-filter' style={{ maxHeight: 'none' }}>
-                                <h5 className='filter-title'>Flight Times 2</h5>
-                                <div className='gr-flex-col'>
-                                    <div className='flex-col-item'>
-                                        <div className='flex-between'>
-                                            <p className='title text-truncate' style={{ fontWeight: '600' }}>Take-off</p>
+                                    <h5 className='filter-title'>Flight Times</h5>
+                                    <div className='gr-flex-col'>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Take off</p>
+                                            </div>
+                                        </div>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                {selectedFlight.length === 4 || selectedFlight.length === 0
+                                                    ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
+                                                    : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
+                                                        {selectedFlight.map((element) => element.label).join(', ')}
+                                                    </p>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className='flex-col-item'>
-                                        <div className='flex-between'>
-                                            {selectedFlight.length === 4 || selectedFlight.length === 0
-                                                ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
-                                                : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
-                                                    {selectedFlight.map((element) => element.label).join(', ')}
-                                                </p>
-                                            }
+                                    <div className='gr-flex-col'>
+                                        <div className='grid-item'>
+                                            {flightTimesMap.map((element) => {
+                                                const active = selectedFlight.some(
+                                                    (selectedItem) => selectedItem.label === element.label
+                                                )
+                                                return (
+                                                    <div onClick={() => handleItemClick(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                        <p className='text-14'>{element.label}</p>
+                                                        <p className='text-14'>{element.startTime} - {element.endTime}</p>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className='gr-flex-col'>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Landing time</p>
+                                            </div>
+                                        </div>
+                                        <div className='flex-col-item'>
+                                            <div className='flex-between'>
+                                                {selectedFlightEnd.length === 4 || selectedFlightEnd.length === 0
+                                                    ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
+                                                    : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
+                                                        {selectedFlightEnd.map((element) => element.label).join(', ')}
+                                                    </p>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='gr-flex-col'>
+                                        <div className='grid-item'>
+                                            {flightTimesMap.map((element) => {
+                                                const active = selectedFlightEnd.some(
+                                                    (selectedItem) => selectedItem.label === element.label
+                                                )
+                                                return (
+                                                    <div onClick={() => handleItemClickEnd(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                        <p className='text-14'>{element.label}</p>
+                                                        <p className='text-14'>{element.startTime} - {element.endTime}</p>
+                                                    </div>
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 </div>
-                                <div className='gr-flex-col'>
-                                    <div className='grid-item'>
-                                        {flightTimesMap.map((element) => {
-                                            const active = selectedFlight.some(
-                                                (selectedItem) => selectedItem.label === element.label
-                                            )
-                                            return (
-                                                <div onClick={() => handleItemClick(element)} className={active ? 'item active' : 'item'} key={element.label}>
-                                                    <p className='text-14'>{element.label}</p>
-                                                    <p className='text-14'>{element.startTime} - {element.endTime}</p>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <div className='frame-paginated-flex'>
                             <div className='flex-col-top'>

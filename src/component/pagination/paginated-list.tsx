@@ -144,9 +144,6 @@ const PaginatedList = (props: IProps) => {
     if (existingTripType === true && dataBooking.length > 1) {
       setOpenBooking(true)
     }
-    if (existingTripType === false && dataBooking.length === 1) {
-      setOpenBooking(true)
-    }
   }, [tripType, dispatch, dataBooking, refresh])
 
   useEffect(() => {
@@ -435,40 +432,79 @@ const PaginatedList = (props: IProps) => {
                     <div className='item-col-1'>
                       <h3 className='text-18 text-truncate'>{formatNumber(element.FareAdtFull)} {element.Currency}</h3>
                       {/* <p className="filter-item text-truncate">16 deals</p> */}
-                      <button className={'view-deal'} onClick={() => addNewItem({
-                        key: pageRevert,
-                        Id: element.Id,
-                        Airline: element.Airline,
-                        Adt: element.Adt,
-                        Chd: element.Chd,
-                        Inf: element.Inf,
-                        Currency: element.Currency,
-                        EndDate: element.EndDate,
-                        EndPoint: element.EndPoint,
-                        EndTime: element.EndTime,
-                        FlightNumber: element.FlightNumber,
-                        ListSegment: element.ListSegment.map((item: ListSegmentType) => {
-                          return {
-                            Airline: item.Airline,
-                            AllowanceBaggage: item.AllowanceBaggage,
-                            Cabin: item.Cabin,
-                            Class: item.Class,
-                            HandBaggage: item.HandBaggage
-                          }
-                        }),
-                        StartDate: element.StartDate,
-                        StartPoint: element.StartPoint,
-                        StartTime: element.StartTime,
-                        FareAdt: element.FareAdt,
-                        FareChd: element.FareChd,
-                        FareInf: element.FareInf,
-                        TotalFeeTaxAdt: element.TotalFeeTaxAdt,
-                        TotalFeeTaxChd: element.TotalFeeTaxChd,
-                        TotalFeeTaxInf: element.TotalFeeTaxInf,
-                      })}>
-                        Chọn
-                        <GoArrowUpRight />
-                      </button>
+                      {tripType === true
+                        ? <button className={'view-deal'} onClick={() => addNewItem({
+                          key: pageRevert,
+                          Id: element.Id,
+                          Airline: element.Airline,
+                          Adt: element.Adt,
+                          Chd: element.Chd,
+                          Inf: element.Inf,
+                          Currency: element.Currency,
+                          EndDate: element.EndDate,
+                          EndPoint: element.EndPoint,
+                          EndTime: element.EndTime,
+                          FlightNumber: element.FlightNumber,
+                          ListSegment: element.ListSegment.map((item: ListSegmentType) => {
+                            return {
+                              Airline: item.Airline,
+                              AllowanceBaggage: item.AllowanceBaggage,
+                              Cabin: item.Cabin,
+                              Class: item.Class,
+                              HandBaggage: item.HandBaggage
+                            }
+                          }),
+                          StartDate: element.StartDate,
+                          StartPoint: element.StartPoint,
+                          StartTime: element.StartTime,
+                          FareAdt: element.FareAdt,
+                          FareChd: element.FareChd,
+                          FareInf: element.FareInf,
+                          TotalFeeTaxAdt: element.TotalFeeTaxAdt,
+                          TotalFeeTaxChd: element.TotalFeeTaxChd,
+                          TotalFeeTaxInf: element.TotalFeeTaxInf,
+                        })}>
+                          Chọn
+                          <GoArrowUpRight />
+                        </button>
+                        : <Link to={'/booking'}>
+                          <button className={'view-deal'} onClick={() => addNewItem({
+                            key: pageRevert,
+                            Id: element.Id,
+                            Airline: element.Airline,
+                            Adt: element.Adt,
+                            Chd: element.Chd,
+                            Inf: element.Inf,
+                            Currency: element.Currency,
+                            EndDate: element.EndDate,
+                            EndPoint: element.EndPoint,
+                            EndTime: element.EndTime,
+                            FlightNumber: element.FlightNumber,
+                            ListSegment: element.ListSegment.map((item: ListSegmentType) => {
+                              return {
+                                Airline: item.Airline,
+                                AllowanceBaggage: item.AllowanceBaggage,
+                                Cabin: item.Cabin,
+                                Class: item.Class,
+                                HandBaggage: item.HandBaggage
+                              }
+                            }),
+                            StartDate: element.StartDate,
+                            StartPoint: element.StartPoint,
+                            StartTime: element.StartTime,
+                            FareAdt: element.FareAdt,
+                            FareChd: element.FareChd,
+                            FareInf: element.FareInf,
+                            TotalFeeTaxAdt: element.TotalFeeTaxAdt,
+                            TotalFeeTaxChd: element.TotalFeeTaxChd,
+                            TotalFeeTaxInf: element.TotalFeeTaxInf,
+                          })}>
+                            Chọn
+                            <GoArrowUpRight />
+                          </button>
+                        </Link>
+                      }
+
                     </div>
                   </div>
                 )
