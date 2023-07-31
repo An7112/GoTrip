@@ -278,7 +278,7 @@ const PaginatedList = (props: IProps) => {
   const Bookingitems: TabsProps['items'] = dataBooking.map((element, index) => (
     {
       key: String(index),
-      label: `Chi tiết chuyến bay ${dataBooking.length > 1 ? `${index + 1}` : ''}`,
+      label: `Chuyến ${dataBooking.length > 0 && index === 0 ? `đi` : 'về'}`,
       children: (
         <>
           <div className='tab-item-flex-col'>
@@ -365,7 +365,7 @@ const PaginatedList = (props: IProps) => {
             <span className='text-15' style={{ fontWeight: '400' }}>Tổng chi phí tạm tính</span>
             <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
           </span>
-          <span className='text-15' style={{ fontWeight: '400' }}>{selectedItem && selectedItem.TotalPriceFormat.toLocaleString("vi-VN")} {selectedItem && selectedItem.Currency}</span>
+          <span className='text-15' style={{ fontWeight: '500' }}>{selectedItem && selectedItem.TotalPriceFormat.toLocaleString("vi-VN")} {selectedItem && selectedItem.Currency}</span>
         </div>}
       >
         <div className='flex-col'>
@@ -387,7 +387,7 @@ const PaginatedList = (props: IProps) => {
             <span className='text-15' style={{ fontWeight: '400' }}>Tổng chi phí tạm tính</span>
             <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
           </span>
-          <span className='text-15' style={{ fontWeight: '400' }}>{total.toLocaleString("vi-VN")} VNĐ</span>
+          <span className='text-15' style={{ fontWeight: '500' }}>{total.toLocaleString("vi-VN")} VNĐ</span>
           <Link to={'/booking'}>
             <button className='continue'>Tiếp tục</button>
           </Link>

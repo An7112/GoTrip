@@ -55,7 +55,7 @@ function MiniBooking() {
     return (
         <div className='list-of-trips'>
             {chuyenDi.length > 0
-                ?
+                &&
                 <div className='trip-item'>
                     <div className='trip-header'>
                         <div className='trip-header__title'>
@@ -92,29 +92,9 @@ function MiniBooking() {
                         </div>
                     </div>
                 </div>
-                : <div className='trip-item' style={{ opacity: '0.5' }}>
-                    <div className='trip-header'>
-                        <div className='trip-header__title'>
-                            <h3 className='title'>
-                                Chuyến đi
-                            </h3>
-                        </div>
-                    </div>
-                    <h3 style={
-                        {
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: '15px',
-                            fontWeight: '600',
-                            color: '#3554d1'
-                        }}>
-                        Đang chọn chuyến đi
-                    </h3>
-                </div>
             }
             {chuyenVe.length > 0
-                ?
+                &&
                 <div className='trip-item'>
                     <div className='trip-header'>
                         <div className='trip-header__title'>
@@ -150,26 +130,6 @@ function MiniBooking() {
                             <p className="filter-item fix-content">{chuyenVe[0].FlightNumber}</p>
                         </div>
                     </div>
-                </div>
-                : <div className='trip-item' style={{ opacity: '0.5' }}>
-                    <div className='trip-header'>
-                        <div className='trip-header__title'>
-                            <h3 className='title'>
-                                Chuyến về
-                            </h3>
-                        </div>
-                    </div>
-                    <h3 style={
-                        {
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: '15px',
-                            fontWeight: '600',
-                            color: '#3554d1'
-                        }}>
-                        Đang chọn chuyến về
-                    </h3>
                 </div>
             }
         </div>

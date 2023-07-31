@@ -46,10 +46,15 @@ interface MinFareByCabin {
     minFareAdtFull: number;
 }
 
-function FilteredListPage() {
+interface FlightTime {
+    label: string;
+    startTime: string;
+    endTime: string;
+}
 
-    const url = new URL(window.location.href);
-    const searchParams = new URLSearchParams(url.search);
+function FilteredListPage() {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(decodeURIComponent(location.search));
     const startPoint = searchParams.get('startPoint') ?? '';
     const endPoint = searchParams.get('endPoint') ?? '';
     const departDate = searchParams.get('departDate') ?? '';
@@ -62,7 +67,6 @@ function FilteredListPage() {
     const { tripType } = useSelector((state: any) => state)
     const dispatch = useDispatch()
 
-    const location = useLocation();
     const encrypt = (str: string) => {
         return md5(str);
     };
@@ -81,7 +85,6 @@ function FilteredListPage() {
     const [ascending, setAscending] = useState<boolean>(false);
     const [loading, setLoading] = useState(true)
     const [loading2, setLoading2] = useState(true)
-    const [isArray2D, setIsArray2D] = useState(false)
     const [pageRevert, setPageRevert] = useState(1)
     const [flyingTo, setFlyingTo] = useState('')
     const [flyingToReturn, setFlyingToReturn] = useState('')
@@ -97,6 +100,7 @@ function FilteredListPage() {
     const maxProgress = 96;
     const loadingRef = useRef(false);
     const intervalRef = useRef<number>();
+    const [selectedFlight, setSelectedFlight] = useState<FlightTime[]>([]);
 
     const apiUrl = "http://plugin.datacom.vn/flightsearch";
 
@@ -124,7 +128,6 @@ function FilteredListPage() {
     };
 
     const fetchData = async () => {
-        console.log('Goi')
         const convert = dataCountry.find((element) => element.code === endPoint)?.city ?? ''
         const convertReturn = dataCountry.find((element) => element.code === startPoint)?.city ?? ''
         setFlyingTo(convert)
@@ -369,7 +372,7 @@ function FilteredListPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location, statusOpenTab2])
 
-
+    console.log(filteredData)
     const handleFilterChange = (filterKey: string, checkedValues: string[] | boolean) => {
         setFilters((prevFilters) => ({ ...prevFilters, [filterKey]: checkedValues }));
     };
@@ -392,7 +395,61 @@ function FilteredListPage() {
         }
     }, [tripType])
 
+    const flightTimesMap = [
+        { label: 'Sáng sớm', startTime: '00:00', endTime: '06:00' },
+        { label: 'Buổi sáng', startTime: '06:00', endTime: '12:00' },
+        { label: 'Buổi chiều', startTime: '12:00', endTime: '18:00' },
+        { label: 'Buổi tối', startTime: '18:00', endTime: '24:00' },
+    ]
+
+    const handleItemClick = (item: FlightTime) => {
+        const itemIndex = selectedFlight.findIndex(
+            (selectedFlight) => selectedFlight.label === item.label
+        );
+        if (itemIndex === -1) {
+            setSelectedFlight([...selectedFlight, item]);
+        } else {
+            const updatedItems = [...selectedFlight];
+            updatedItems.splice(itemIndex, 1);
+            setSelectedFlight(updatedItems);
+        }
+    };
+
+    const formatTime = (timeString: any) => {
+        const [hour, minute] = timeString.split(':').map(Number);
+        const date = new Date();
+        date.setHours(hour);
+        date.setMinutes(minute);
+        return date;
+    };
+
+    // Hàm lấy startTime nhỏ nhất và endTime lớn nhất trong mảng selectedFlight
+    const getMinMaxTimes = (selectedFlight: any) => {
+        if (selectedFlight.length === 0) {
+            return { startTime: null, endTime: null };
+        }
+
+        let startTime = formatTime(selectedFlight[0].startTime);
+        let endTime = formatTime(selectedFlight[0].endTime);
+
+        for (let i = 1; i < selectedFlight.length; i++) {
+            const { startTime: currentStartTime, endTime: currentEndTime } = selectedFlight[i];
+            const formattedStartTime = formatTime(currentStartTime);
+            const formattedEndTime = formatTime(currentEndTime);
+
+            if (formattedStartTime < startTime) {
+                startTime = formattedStartTime;
+            }
+            if (formattedEndTime > endTime) {
+                endTime = formattedEndTime;
+            }
+        }
+
+        return { startTime, endTime };
+    };
+
     useEffect(() => {
+        const { startTime: minStartTime, endTime: maxEndTime } = getMinMaxTimes(selectedFlight);
         if (tripType) {
             const filteredData = paginatedData.filter((item) => {
                 const isAirlineMatch = filters.airline.length === 0 || item.ListSegment.some((segment: any) => filters.airline.includes(segment.Airline));
@@ -404,7 +461,10 @@ function FilteredListPage() {
                 const isItemStartTimeMatch = !filters.timeLine || item.StartTime >= filters.timeLine;
                 const isStopsMatch = filters.stops.length === 0 || filters.stops.includes(getNumberOfStops(item));
 
-                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch;
+                const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
+                const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
+
+                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch && isStartTimeMatch && isEndTimeMatch;
             });
 
             const filteredData2 = paginatedData2.filter((item) => {
@@ -417,7 +477,10 @@ function FilteredListPage() {
                 const isItemStartTimeMatch = !filters.timeLine || item.StartTime >= filters.timeLine;
                 const isStopsMatch = filters.stops.length === 0 || filters.stops.includes(getNumberOfStops(item));
 
-                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch;
+                const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
+                const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
+
+                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch && isStartTimeMatch && isEndTimeMatch;
             });
 
             setFilteredData2(filteredData2);
@@ -433,12 +496,15 @@ function FilteredListPage() {
                 const isItemStartTimeMatch = !filters.timeLine || item.StartTime >= filters.timeLine;
                 const isStopsMatch = filters.stops.length === 0 || filters.stops.includes(getNumberOfStops(item));
 
-                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch;
+                const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
+                const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
+
+                return isAirlineMatch && isCabinMatch && isHandBaggageMatch && isPromoMatch && isItemStartTimeMatch && isStopsMatch && isStartTimeMatch && isEndTimeMatch;
             });
 
             setFilteredData(filteredData);
         }
-    }, [filters, paginatedData, paginatedData2, tripType]);
+    }, [filters, paginatedData, paginatedData2, tripType, selectedFlight]);
 
     const handleNumberChange = (number: number) => {
         setPageRevert(number)
@@ -890,33 +956,41 @@ function FilteredListPage() {
                             </div>
                             <div className='line-row'>
                             </div>
-                            <div className='gr-filter'>
-                                    <h5 className='filter-title'>Flight Times 2</h5>
-                                    <div className='gr-flex-col'>
-                                        <div className='flex-col-item'>
-                                            <div className='flex-between'>
-                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Take-off</p>
-                                            </div>
+                            <div className='gr-filter' style={{ maxHeight: 'none' }}>
+                                <h5 className='filter-title'>Flight Times 2</h5>
+                                <div className='gr-flex-col'>
+                                    <div className='flex-col-item'>
+                                        <div className='flex-between'>
+                                            <p className='title text-truncate' style={{ fontWeight: '600' }}>Take-off</p>
                                         </div>
                                     </div>
-                                    <div className='gr-flex-col'>
-                                        <div className='flex-col-item'>
-                                            <div className='flex-between'>
-                                                <p className='filter-item text-truncate'>01:00</p>
-                                            </div>
-                                            <p className='filter-item text-truncate'>{timeLine}</p>
+                                    <div className='flex-col-item'>
+                                        <div className='flex-between'>
+                                            {selectedFlight.length === 4 || selectedFlight.length === 0
+                                                ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
+                                                : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
+                                                    {selectedFlight.map((element) => element.label).join(', ')}
+                                                </p>
+                                            }
                                         </div>
-                                    </div>
-                                    <div className='gr-flex-col'>
-                                        <Slider
-                                            step={30}
-                                            min={60}
-                                            max={1440}
-                                            onChange={onChangeTimeline}
-                                            tooltip={{ formatter: null }}
-                                        />
                                     </div>
                                 </div>
+                                <div className='gr-flex-col'>
+                                    <div className='grid-item'>
+                                        {flightTimesMap.map((element) => {
+                                            const active = selectedFlight.some(
+                                                (selectedItem) => selectedItem.label === element.label
+                                            )
+                                            return (
+                                                <div onClick={() => handleItemClick(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                    <p className='text-14'>{element.label}</p>
+                                                    <p className='text-14'>{element.startTime} - {element.endTime}</p>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div className='frame-paginated-flex'>
                             <div className='flex-col-top'>
@@ -978,35 +1052,43 @@ function FilteredListPage() {
                                     </button>
                                 </div>
                             </div>
-                            <Tabs
-                                defaultActiveKey="1"
-                                onChange={(value) => setPageRevert(Number(value))}
-                                activeKey={String(pageRevert)}
-                                className='custom-tabs'
-                                items={[
-                                    {
-                                        label: 'Chuyến đi',
-                                        key: '1',
-                                        children: <>
-                                            <div className='slider-top-filter'>
-                                                <SliderDateTrend />
-                                            </div>
-                                            <PaginatedList paginatedData={filteredData} loading={loading} pageRevert={1} onNumberChange={handleNumberChange} />
-                                        </>,
-                                    },
-                                    {
-                                        label: 'Chuyến về',
-                                        key: '2',
-                                        children: <>
-                                            <div className='slider-top-filter'>
-                                                <SliderDateTrendReturn />
-                                            </div>
-                                            <PaginatedList paginatedData={filteredData2} loading={loading2} pageRevert={2} onNumberChange={handleNumberChange} />
-                                        </>,
-                                        disabled: statusOpenTab2 === false,
-                                    },
-                                ]}
-                            />
+                            {tripType === true
+                                ? <Tabs
+                                    defaultActiveKey="1"
+                                    onChange={(value) => setPageRevert(Number(value))}
+                                    activeKey={String(pageRevert)}
+                                    className='custom-tabs'
+                                    items={[
+                                        {
+                                            label: 'Chuyến đi',
+                                            key: '1',
+                                            children: <>
+                                                <div className='slider-top-filter'>
+                                                    <SliderDateTrend />
+                                                </div>
+                                                <PaginatedList paginatedData={filteredData} loading={loading} pageRevert={1} onNumberChange={handleNumberChange} />
+                                            </>,
+                                        },
+                                        {
+                                            label: 'Chuyến về',
+                                            key: '2',
+                                            children: <>
+                                                <div className='slider-top-filter'>
+                                                    <SliderDateTrendReturn />
+                                                </div>
+                                                <PaginatedList paginatedData={filteredData2} loading={loading2} pageRevert={2} onNumberChange={handleNumberChange} />
+                                            </>,
+                                            disabled: statusOpenTab2 === false,
+                                        },
+                                    ]}
+                                />
+                                : <>
+                                    <div className='slider-top-filter'>
+                                        <SliderDateTrend />
+                                    </div>
+                                    <PaginatedList paginatedData={filteredData} loading={loading} pageRevert={1} onNumberChange={handleNumberChange} />
+                                </>
+                            }
 
                         </div>
                     </div>

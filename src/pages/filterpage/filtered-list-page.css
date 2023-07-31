@@ -29,6 +29,32 @@
     overflow: hidden;
 }
 
+.gr-flex-col .grid-item{
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.gr-flex-col .grid-item .item{
+    width: 100%;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    background-color: #f7f7f7;
+    height: 120px;
+    color: black;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gr-flex-col .grid-item .item.active{
+    background-color: #3554d1;
+    color: white;
+}
+
 .list-of-trips .trip-item {
     display: flex;
     width: 100%;

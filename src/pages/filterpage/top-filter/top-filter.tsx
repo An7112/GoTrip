@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import { CiLocationOn } from 'react-icons/ci'
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown, Select, Switch } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTripType } from 'store/reducers';
@@ -38,8 +38,8 @@ function TopFilter() {
     const [onchangeValue, setOnchangeValue] = useState('');
     const [onchangeValueFlyTo, setOnchangeValueFlyTo] = useState('');
 
-    const url = new URL(window.location.href);
-    const searchParams = new URLSearchParams(url.search);
+    const location = useLocation();
+    const searchParams = new URLSearchParams(decodeURIComponent(location.search));
     const startPoint = searchParams.get('startPoint') ?? '';
     const endPoint = searchParams.get('endPoint') ?? '';
     const adults = searchParams.get('adults') ?? '';
@@ -116,6 +116,7 @@ function TopFilter() {
     };
 
     const updateUrlWithFilters = () => {
+        setOpen(false)
         const queryParams = new URLSearchParams(filters);
         history(`/filtered?${queryParams.toString()}`);
     };

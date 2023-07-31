@@ -16,6 +16,18 @@ const { Option } = Select;
 dayjs.extend(customParseFormat);
 dayjs.locale('vi');
 
+interface Filters {
+    [key: string]: string;
+    startPoint: string;
+    endPoint: string;
+    adults: string;
+    children: string;
+    Inf: string;
+    departDate: string;
+    returnDate: string;
+    twoWay: string;
+}
+
 function Home() {
 
     const todayDate = dayjs()
@@ -87,6 +99,12 @@ function Home() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [locationActiveTo, valueInputTo])
 
+    useEffect(() => {
+        if (twoWay === false) {
+            setEndDate('')
+        }
+    }, [twoWay])
+
 
     useEffect(() => {
         const defaultValueStr = localStorage.getItem('filterHome');
@@ -107,7 +125,6 @@ function Home() {
             }
         }
     }, []);
-    
 
     useEffect(() => {
         if (startDate == null || startDate === '') {
@@ -143,18 +160,8 @@ function Home() {
     };
 
     const isStartNull = dayjs(todayDate.toDate()).format('DDMMYYYY')
-    const filters = {
-        startPoint: onchangeValueDepart,
-        endPoint: onchangeValueToReturn,
-        adults: String(adults) ?? '',
-        children: String(children) ?? '',
-        Inf: String(rooms) ?? '',
-        departDate: startDate ?? String(isStartNull),
-        returnDate: endDate ?? '',
-        twoWay: String(twoWay)
-    };
 
-    const queryParams = new URLSearchParams(filters).toString();
+    // const queryParams = new URLSearchParams(filters).toString();
 
     const customDates: { date: string; value: string }[] = [
         { date: '24072023', value: '20$' },
@@ -222,8 +229,22 @@ function Home() {
     };
 
     const jumpPage = () => {
+        const filters: Filters = {
+            startPoint: onchangeValueDepart,
+            endPoint: onchangeValueToReturn,
+            adults: String(adults) ?? '',
+            children: String(children) ?? '',
+            Inf: String(rooms) ?? '',
+            departDate: startDate ?? String(isStartNull),
+            returnDate: endDate ?? '',
+            twoWay: String(twoWay)
+        };
+
+        const queryParams = new URLSearchParams(filters).toString();
+
+        const queryString = encodeURIComponent(queryParams)
         localStorage.setItem('filterHome', JSON.stringify(filters))
-        history(`/filtered?${queryParams}`)
+        history(`/filtered?${queryString}`)
     }
 
     return (
