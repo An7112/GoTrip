@@ -89,21 +89,28 @@ function Home() {
 
 
     useEffect(() => {
-        const defaultValue = JSON.parse(localStorage.getItem('filterHome') ?? '')
-        if (defaultValue) {
-            setOnchangeValueDepart(defaultValue.startPoint)
-            setOnchangeValueToReturn(defaultValue.endPoint)
-            setAdults(Number(defaultValue.adults))
-            setChildren(Number(defaultValue.children))
-            setRooms(Number(defaultValue.Inf))
-            setTwoWay(defaultValue.twoWay === String(true) ? true : false)
-            setStartDate(defaultValue.departDate)
-            setEndDate(defaultValue.returnDate)
+        const defaultValueStr = localStorage.getItem('filterHome');
+        if (defaultValueStr) {
+            try {
+                const defaultValue = JSON.parse(defaultValueStr);
+                setOnchangeValueDepart(defaultValue.startPoint);
+                setOnchangeValueToReturn(defaultValue.endPoint);
+                setAdults(Number(defaultValue.adults));
+                setChildren(Number(defaultValue.children));
+                setRooms(Number(defaultValue.Inf));
+                setTwoWay(defaultValue.twoWay === "true");
+                setStartDate(defaultValue.departDate);
+                setEndDate(defaultValue.returnDate);
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+                // Handle the error or provide a default value
+            }
         }
-    }, [])
+    }, []);
+    
 
     useEffect(() => {
-        if (startDate == null) {
+        if (startDate == null || startDate === '') {
             const formattedStartDate = todayDate.format('DDMMYYYY');
             setStartDate(formattedStartDate)
         }
