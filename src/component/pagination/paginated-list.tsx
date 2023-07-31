@@ -35,7 +35,7 @@ const PaginatedList = (props: IProps) => {
 
   const dispatch = useDispatch()
 
-
+console.log(selectedItem)
   const existingColumn = 1;
   const paginatedColumn = [];
   for (let i = 0; i < existingColumn; i++) {
@@ -159,33 +159,20 @@ const PaginatedList = (props: IProps) => {
     return [];
   };
 
-  const airportNameStart = selectedItem && listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === selectedItem.StartPoint).AirportName
-  const airportNameEnd = selectedItem && listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === selectedItem.EndPoint).AirportName
-
   const flatData = allData.flatMap((response: any) => flattenListAircraft(response)) ?? []
 
   const uniqueSet = new Set(flatData.map((item: any) => JSON.stringify(item)));
   const uniqueArray = Array.from(uniqueSet).map((item: any) => JSON.parse(item));
 
-  const typePlane = selectedItem && selectedItem.ListSegment[0].Plane && uniqueArray.length > 0
-    ? uniqueArray.find((element: any) => element.IATA === selectedItem.ListSegment[0].Plane)?.Manufacturer
-    : 'Airbus';
-
-  const flatDataTwo = allDataTwo.flatMap((response: any) => flattenListAircraft(response)) ?? []
-
-  const uniqueSetTwo = new Set(flatDataTwo.map((item: any) => JSON.stringify(item)));
-  const uniqueArrayTwo = Array.from(uniqueSetTwo).map((item: any) => JSON.parse(item));
-
-  const typePlaneTwo = selectedItem && selectedItem.ListSegment[0].Plane && uniqueArrayTwo.length > 0
-    ? uniqueArrayTwo.find((element: any) => element.IATA === selectedItem.ListSegment[0].Plane)?.Manufacturer
-    : 'Airbus'
-
+  console.log(uniqueArray)
   const getTypePlaneMap = (item: any) => {
-    const typePlane = item && item.ListSegment[0].Plane && uniqueArray.length > 0
+    console.log(item)
+    const typePlane = item && uniqueArray.length > 0
       ? uniqueArray.find((element: any) => element.IATA === item.ListSegment[0].Plane)?.Manufacturer
-      : 'Airbus';
+      : '';
     return typePlane
   }
+  
 
   const getAirPortName = (item: any, key: string) => {
     if (key === 'start') {
@@ -217,8 +204,8 @@ const PaginatedList = (props: IProps) => {
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                 <span className='text-15'>Chuyến bay: <strong>{selectedItem.FlightNumber}</strong> </span>
                 {pageRevert === 1
-                  ? <span className='text-15'>Loại máy bay: <strong>{typePlane && typePlane} {selectedItem.ListSegment[0]?.Plane}</strong> </span>
-                  : <span className='text-15'>Loại máy bay: <strong>{typePlaneTwo && typePlaneTwo} {selectedItem.ListSegment[0]?.Plane}</strong> </span>
+                  ? <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.ListSegment[0].Plane}</strong> </span>
+                  : <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.ListSegment[0].Plane}</strong> </span>
                 }
               </span>
             </div>
@@ -242,7 +229,7 @@ const PaginatedList = (props: IProps) => {
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{convertCity(selectedItem.StartPoint)} ({selectedItem && selectedItem.StartPoint})</span>
-                    <span className='text-14' style={{ color: '#9b9b9b' }}>{airportNameStart}</span>
+                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem, 'start')}</span>
                   </span>
                 </div>
                 <div className='trip-inf-row'>
@@ -257,7 +244,7 @@ const PaginatedList = (props: IProps) => {
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{convertCity(selectedItem.EndPoint)} ({selectedItem && selectedItem.EndPoint})</span>
-                    <span className='text-14' style={{ color: '#9b9b9b' }}>{airportNameEnd}</span>
+                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem, 'end')}</span>
                   </span>
                 </div>
               </div>
@@ -383,6 +370,7 @@ const PaginatedList = (props: IProps) => {
                   AllowanceBaggage: item.AllowanceBaggage,
                   Cabin: item.Cabin,
                   Class: item.Class,
+                  Plane: item.Plane,
                   HandBaggage: item.HandBaggage
                 }
               }),
@@ -418,6 +406,7 @@ const PaginatedList = (props: IProps) => {
                     AllowanceBaggage: item.AllowanceBaggage,
                     Cabin: item.Cabin,
                     Class: item.Class,
+                    Plane: item.Plane,
                     HandBaggage: item.HandBaggage
                   }
                 }),
@@ -523,6 +512,7 @@ const PaginatedList = (props: IProps) => {
                               Airline: item.Airline,
                               AllowanceBaggage: item.AllowanceBaggage,
                               Cabin: item.Cabin,
+                              Plane: item.Plane,
                               Class: item.Class,
                               HandBaggage: item.HandBaggage
                             }
@@ -558,6 +548,7 @@ const PaginatedList = (props: IProps) => {
                                 Airline: item.Airline,
                                 AllowanceBaggage: item.AllowanceBaggage,
                                 Cabin: item.Cabin,
+                                Plane: item.Plane,
                                 Class: item.Class,
                                 HandBaggage: item.HandBaggage
                               }

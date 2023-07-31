@@ -29,7 +29,8 @@ export interface ListSegmentType {
     AllowanceBaggage: string,
     Cabin: string,
     Class: string,
-    HandBaggage: string
+    HandBaggage: string,
+    Plane: string
 }
 export interface BookingType {
     key: number,

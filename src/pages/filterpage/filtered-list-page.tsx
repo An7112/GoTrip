@@ -429,7 +429,6 @@ function FilteredListPage() {
         }
     };
 
-    console.log(selectedFlightEnd)
     const formatTime = (timeString: any) => {
         const [hour, minute] = timeString.split(':').map(Number);
         const date = new Date();
