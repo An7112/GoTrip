@@ -380,7 +380,7 @@
 
 .frame-paginated-flex {
     display: flex;
-    gap: 24px;
+    gap: 8px;
     flex-direction: column;
     width: 100%;
 }

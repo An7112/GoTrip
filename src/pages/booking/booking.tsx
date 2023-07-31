@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 // import 'antd/dist/antd.css';
 import 'dayjs/locale/vi';
 import { BookingType } from 'modal/index';
-import { convertCity, formatNgayThangNam, formatNgayThangNam4, getAirlineFullName, getNumberOfStops } from 'utils/custom/custom-format';
+import { convertCity, formatNgayThangNam, formatNgayThangNam3, formatNgayThangNam4, getAirlineFullName, getNumberOfStops } from 'utils/custom/custom-format';
 import { useDispatch } from 'react-redux';
 import { setOutPage } from 'store/reducers';
 dayjs.locale('vi')
@@ -206,9 +206,9 @@ function Booking() {
                             <div className='booking-grid-item col-2'>
                                 <h3 className='title-page'>Thông tin chi tiết về khách du lịch.</h3>
                                 <div className='contact-form'>
-                                    <div className='contact-header'>
+                                    {/* <div className='contact-header'>
                                         <p className='text-15'>Thông tin hành khách</p>
-                                    </div>
+                                    </div> */}
                                     {dataBooking.length > 0 && dataBooking[0].Adt > 0
                                         && <Row>
                                             <div className='contact-header inner'>
@@ -504,7 +504,7 @@ function Booking() {
                             const totalFee = element.TotalFeeTaxAdt + element.TotalFeeTaxChd + element.TotalFeeTaxInf
                             return (
                                 <div className='plane-frame'>
-                                    <p className='header-text text-15'><button className='continue'>Chuyến bay {index + 1}</button> • {formatNgayThangNam4(element.StartDate)}</p>
+                                    <p className='header-text text-15'><button className='continue'>Chuyến {index === 0 ? 'đi' : 'về'}</button> • {formatNgayThangNam3(element.StartDate)}</p>
                                     <div className='frame-booking-logo'>
                                         {getAirlineLogo(element.ListSegment[0].Airline, '40px')}
                                         <div className='booking-logo-col'>

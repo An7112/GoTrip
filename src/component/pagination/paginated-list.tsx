@@ -24,7 +24,7 @@ const PaginatedList = (props: IProps) => {
   const { tripType, selectedItem, listGeoCodeOneTrip, allData, allDataTwo } = useSelector((state: any) => state)
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, _] = useState(5);
+  const [itemsPerPage, _] = useState(30);
   const [visibleDropdowns, setVisibleDropdowns] = useState<any>({});
   const [sliceLoadMore, setSliceLoadMore] = useState([])
   const [open, setOpen] = useState(false)
@@ -80,6 +80,7 @@ const PaginatedList = (props: IProps) => {
   };
 
   const addNewItem = (item: any) => {
+    setOpen(false)
     localStorage.setItem('outPage', JSON.stringify(true));
     dispatch(setOutPage(1))
     setRefresh(prev => prev + 1)
@@ -141,7 +142,7 @@ const PaginatedList = (props: IProps) => {
 
   useEffect(() => {
     const existingTripType = tripType
-    if (existingTripType === true && dataBooking.length > 1) {
+    if (existingTripType === true && dataBooking.length === 2) {
       setOpenBooking(true)
     }
   }, [tripType, dispatch, dataBooking, refresh])
@@ -363,6 +364,78 @@ const PaginatedList = (props: IProps) => {
             <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
           </span>
           <span className='text-15' style={{ fontWeight: '500' }}>{selectedItem && selectedItem.TotalPriceFormat.toLocaleString("vi-VN")} {selectedItem && selectedItem.Currency}</span>
+          {selectedItem && tripType === true
+            ? <button className={'view-deal'} onClick={() => addNewItem({
+              key: pageRevert,
+              Id: selectedItem.Id,
+              Airline: selectedItem.Airline,
+              Adt: selectedItem.Adt,
+              Chd: selectedItem.Chd,
+              Inf: selectedItem.Inf,
+              Currency: selectedItem.Currency,
+              EndDate: selectedItem.EndDate,
+              EndPoint: selectedItem.EndPoint,
+              EndTime: selectedItem.EndTime,
+              FlightNumber: selectedItem.FlightNumber,
+              ListSegment: selectedItem.ListSegment.map((item: ListSegmentType) => {
+                return {
+                  Airline: item.Airline,
+                  AllowanceBaggage: item.AllowanceBaggage,
+                  Cabin: item.Cabin,
+                  Class: item.Class,
+                  HandBaggage: item.HandBaggage
+                }
+              }),
+              StartDate: selectedItem.StartDate,
+              StartPoint: selectedItem.StartPoint,
+              StartTime: selectedItem.StartTime,
+              FareAdt: selectedItem.FareAdt,
+              FareChd: selectedItem.FareChd,
+              FareInf: selectedItem.FareInf,
+              TotalFeeTaxAdt: selectedItem.TotalFeeTaxAdt,
+              TotalFeeTaxChd: selectedItem.TotalFeeTaxChd,
+              TotalFeeTaxInf: selectedItem.TotalFeeTaxInf,
+            })}>
+              Chọn
+              <GoArrowUpRight />
+            </button>
+            : <Link to={'/booking'}>
+              <button className={'view-deal'} onClick={() => addNewItem({
+                key: pageRevert,
+                Id: selectedItem.Id,
+                Airline: selectedItem.Airline,
+                Adt: selectedItem.Adt,
+                Chd: selectedItem.Chd,
+                Inf: selectedItem.Inf,
+                Currency: selectedItem.Currency,
+                EndDate: selectedItem.EndDate,
+                EndPoint: selectedItem.EndPoint,
+                EndTime: selectedItem.EndTime,
+                FlightNumber: selectedItem.FlightNumber,
+                ListSegment: selectedItem.ListSegment.map((item: ListSegmentType) => {
+                  return {
+                    Airline: item.Airline,
+                    AllowanceBaggage: item.AllowanceBaggage,
+                    Cabin: item.Cabin,
+                    Class: item.Class,
+                    HandBaggage: item.HandBaggage
+                  }
+                }),
+                StartDate: selectedItem.StartDate,
+                StartPoint: selectedItem.StartPoint,
+                StartTime: selectedItem.StartTime,
+                FareAdt: selectedItem.FareAdt,
+                FareChd: selectedItem.FareChd,
+                FareInf: selectedItem.FareInf,
+                TotalFeeTaxAdt: selectedItem.TotalFeeTaxAdt,
+                TotalFeeTaxChd: selectedItem.TotalFeeTaxChd,
+                TotalFeeTaxInf: selectedItem.TotalFeeTaxInf,
+              })}>
+                Chọn
+                <GoArrowUpRight />
+              </button>
+            </Link>
+          }
         </div>}
       >
         <div className='flex-col'>
