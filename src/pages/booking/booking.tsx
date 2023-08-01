@@ -154,13 +154,13 @@ function Booking() {
         }
         setErrorMessages(errors);
         if (Object.keys(errors).length === 0) {
-            console.log(formData);
+            // console.log(formData);
         }
     };
 
     const handleSubmitInf = () => {
         handleSubmit()
-        console.log([...formDataInf, ...formDataInfChid, ...formDataInfBaby]);
+        // console.log([...formDataInf, ...formDataInfChid, ...formDataInfBaby]);
     };
 
     function formatNumber(number: number) {

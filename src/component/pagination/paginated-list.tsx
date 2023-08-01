@@ -250,8 +250,6 @@ const PaginatedList = (props: IProps) => {
     },
   ];
 
-  console.log(dataBooking)
-
   const Bookingitems: TabsProps['items'] = dataBooking.map((element, index) => (
     {
       key: String(index),
@@ -356,8 +354,6 @@ const PaginatedList = (props: IProps) => {
     num +=
     (cur.TotalFareInf * cur.Inf)
     , 0)
-
-  console.log(newArray.length, dataBooking.length)
 
   return (
     <>

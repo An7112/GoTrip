@@ -24,7 +24,6 @@ export default function Header() {
                         list.classList.add("active");
                     }
                 }
-                console.log("hover");
             });
 
             item.addEventListener("mouseout", function (this: HTMLElement) {

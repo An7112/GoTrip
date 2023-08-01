@@ -589,7 +589,6 @@ function FilteredListPage() {
         setPageRevert(Number(value));
     };
 
-    console.log(filteredData)
     return (
         <div className='filter-page'>
             <TopFilter />
