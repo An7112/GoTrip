@@ -126,7 +126,25 @@
 }
 
 .plane-frame .text-15{
-    white-space: pre-wrap;
+    /* white-space: pre-wrap; */
+}
+
+.tooltip-content{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tooltip-content .content-flex-row{
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tooltip-content .content-flex-row .text-13{
+    color: black;
 }
 
 .text-15{

@@ -69,7 +69,7 @@ function MiniBooking() {
                     </div>
                     <div className='frame-item-col'>
                         <div className='item-flex'>
-                            {getAirlineLogo(chuyenDi[0].ListSegment[0].Airline, '60px')}
+                            {getAirlineLogo(chuyenDi[0].AirlineOperating, '60px')}
                             <div className='flex-center-item'>
                                 <div className='item-col fix-content'>
                                     <h4 className="searchMenu__title text-truncate">{chuyenDi[0].StartTime}</h4>
@@ -108,7 +108,7 @@ function MiniBooking() {
                     </div>
                     <div className='frame-item-col'>
                         <div className='item-flex'>
-                            {getAirlineLogo(chuyenVe[0].ListSegment[0].Airline, '60px')}
+                            {getAirlineLogo(chuyenVe[0].AirlineOperating, '60px')}
                             <div className='flex-center-item'>
                                 <div className='item-col fix-content'>
                                     <h4 className="searchMenu__title text-truncate">{chuyenVe[0].StartTime}</h4>

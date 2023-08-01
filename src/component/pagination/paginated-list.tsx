@@ -1,14 +1,15 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Pagination from './pagination';
 import { GoArrowUpRight } from 'react-icons/go'
 import './pagination.css'
-import { Button, Drawer, Empty, Skeleton, Tabs, TabsProps } from 'antd';
+import { Button, Drawer, Empty, Skeleton, Tabs, TabsProps, Tooltip } from 'antd';
 import { ListSegmentType } from 'modal/index';
 import { useDispatch, useSelector } from 'react-redux';
 import { setBooking, setOutPage, setSelectedItem } from 'store/reducers';
-import { convertCity, formatNgayThangNam2, formatNgayThangNam3, getAirlineFullName, getNumberOfStops } from 'utils/custom/custom-format';
+import { convertCity, formatNgayThangNam2, formatNgayThangNam3, getAirlineFullName, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format';
 import { FaPlaneArrival, FaPlaneDeparture } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { PiWarningCircleThin } from 'react-icons/pi'
 
 interface IProps {
   paginatedData: any[],
@@ -35,7 +36,6 @@ const PaginatedList = (props: IProps) => {
 
   const dispatch = useDispatch()
 
-console.log(selectedItem)
   const existingColumn = 1;
   const paginatedColumn = [];
   for (let i = 0; i < existingColumn; i++) {
@@ -64,22 +64,16 @@ console.log(selectedItem)
     }));
   };
 
-  const getAirlineLogo = (abbr: string, style: string) => {
-    switch (abbr) {
-      case 'VJ':
-        return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietjetair.jpg' alt='vj' />;
-      case 'VN':
-        return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietnamairlines.png' alt='vn' />;
-      case 'QH':
-        return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/bamboo.png' alt='qh' />;
-      case 'VU':
-        return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietravel.png' alt='vu' />;
-      default:
-        return <img style={{ width: style, height: style }} className='paginated-item-img' alt={abbr} />;
+ 
+  const handleButtonClick = () => {
+    const targetElement = document.getElementById('scroll');
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   const addNewItem = (item: any) => {
+    handleButtonClick()
     setOpen(false)
     localStorage.setItem('outPage', JSON.stringify(true));
     dispatch(setOutPage(1))
@@ -159,20 +153,18 @@ console.log(selectedItem)
     return [];
   };
 
-  const flatData = allData.flatMap((response: any) => flattenListAircraft(response)) ?? []
+  const flatData = [...allData, ...allDataTwo].flatMap((response: any) => flattenListAircraft(response)) ?? []
 
   const uniqueSet = new Set(flatData.map((item: any) => JSON.stringify(item)));
   const uniqueArray = Array.from(uniqueSet).map((item: any) => JSON.parse(item));
 
-  console.log(uniqueArray)
   const getTypePlaneMap = (item: any) => {
-    console.log(item)
     const typePlane = item && uniqueArray.length > 0
       ? uniqueArray.find((element: any) => element.IATA === item.ListSegment[0].Plane)?.Manufacturer
       : '';
     return typePlane
   }
-  
+
 
   const getAirPortName = (item: any, key: string) => {
     if (key === 'start') {
@@ -198,15 +190,13 @@ console.log(selectedItem)
             </div>
             <div className='tab-item-row'>
               <span className='gr-flex'>
-                {getAirlineLogo(selectedItem.Airline, '60px')}
-                {getAirlineFullName(selectedItem.ListSegment[0].Airline)}
+                {getAirlineLogo(selectedItem.AirlineOperating, '60px')}
+                {getAirlineFullName(selectedItem.AirlineOperating)}
               </span>
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                 <span className='text-15'>Chuyến bay: <strong>{selectedItem.FlightNumber}</strong> </span>
-                {pageRevert === 1
-                  ? <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.ListSegment[0].Plane}</strong> </span>
-                  : <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.ListSegment[0].Plane}</strong> </span>
-                }
+                <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.ListSegment[0].Plane}</strong> </span>
+                <span className='text-15'>Hạng ghế: <strong>{selectedItem.ListSegment[0].Cabin}</strong> </span>
               </span>
             </div>
             <div className='tab-item-row'>
@@ -260,6 +250,8 @@ console.log(selectedItem)
     },
   ];
 
+  console.log(dataBooking)
+
   const Bookingitems: TabsProps['items'] = dataBooking.map((element, index) => (
     {
       key: String(index),
@@ -276,12 +268,13 @@ console.log(selectedItem)
             </div>
             <div className='tab-item-row'>
               <span className='gr-flex'>
-                {getAirlineLogo(element.Airline, '60px')}
-                {getAirlineFullName(element.ListSegment[0].Airline)}
+                {getAirlineLogo(element.AirlineOperating, '60px')}
+                {getAirlineFullName(element.AirlineOperating)}
               </span>
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                 <span className='text-15'>Chuyến bay: <strong>{element.FlightNumber}</strong> </span>
                 <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(element)} {element.ListSegment[0]?.Plane}</strong> </span>
+                <span className='text-15'>Hạng ghế: <strong>{element.ListSegment[0].Cabin}</strong></span>
               </span>
             </div>
             <div className='tab-item-row'>
@@ -330,10 +323,41 @@ console.log(selectedItem)
     }
   ));
 
-  const total = dataBooking.reduce((num, cur) =>
+  function formatNumberAs(number: number) {
+    return Math.ceil(number / 1000) * 1000;
+  }
+
+  const newArray = dataBooking.map((cur) => ({
+    TotalFareAdt: formatNumberAs(cur.FareAdt * cur.Adt),
+    Adt: cur.Adt,
+    TotalFareChd: formatNumberAs(cur.FareChd * cur.Chd),
+    Chd: cur.Chd,
+    TotalFareInf: formatNumberAs(cur.FareInf * cur.Inf),
+    Inf: cur.Inf,
+    Currency: cur.Currency,
+  }));
+
+  const total = newArray.reduce((num, cur) =>
     num +=
-    (cur.FareAdt * cur.Adt + cur.FareChd * cur.Chd + cur.FareInf * cur.Inf + cur.TotalFeeTaxAdt + cur.TotalFeeTaxChd + cur.TotalFeeTaxInf)
+    (cur.TotalFareAdt * cur.Adt + cur.TotalFareChd * cur.Chd + cur.TotalFareInf * cur.Inf)
     , 0)
+
+  const totalAdt = newArray.reduce((num, cur) =>
+    num +=
+    (cur.TotalFareAdt * cur.Adt)
+    , 0)
+
+  const totalChd = newArray.reduce((num, cur) =>
+    num +=
+    (cur.TotalFareChd * cur.Chd)
+    , 0)
+
+  const totalInf = newArray.reduce((num, cur) =>
+    num +=
+    (cur.TotalFareInf * cur.Inf)
+    , 0)
+
+  console.log(newArray.length, dataBooking.length)
 
   return (
     <>
@@ -346,11 +370,41 @@ console.log(selectedItem)
         // width={window.innerWidth > 900 ? 800 : window.innerWidth - 100}
         open={open}
         footer={<div className='tab-footer'>
-          <span className='gr-flex'>
-            <span className='text-15' style={{ fontWeight: '400' }}>Tổng chi phí tạm tính</span>
-            <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
-          </span>
-          <span className='text-15' style={{ fontWeight: '500' }}>{selectedItem && selectedItem.TotalPriceFormat.toLocaleString("vi-VN")} {selectedItem && selectedItem.Currency}</span>
+
+          <Tooltip color='white' placement="topLeft" title={
+            <div className='tooltip-content'>
+              {selectedItem && selectedItem.Adt > 0
+                && <div className='content-flex-row'>
+                  <span className='text-13'>Vé người lớn x {selectedItem && selectedItem.Adt}</span>
+                  <span className='text-13'>{selectedItem && formatNumber(selectedItem.TotalFareAdt)} {selectedItem && selectedItem.Currency}</span>
+                </div>
+              }
+              {selectedItem && selectedItem.Chd > 0
+                && <div className='content-flex-row'>
+                  <span className='text-13'>Vé trẻ em x {selectedItem && selectedItem.Chd}</span>
+                  <span className='text-13'>{selectedItem && formatNumber(selectedItem.TotalFareChd)} {selectedItem && selectedItem.Currency}</span>
+                </div>
+              }
+              {selectedItem && selectedItem.Inf > 0
+                && <div className='content-flex-row'>
+                  <span className='text-13'>Vé em bé x {selectedItem && selectedItem.Inf}</span>
+                  <span className='text-13'>{selectedItem && formatNumber(selectedItem.TotalFareInf)} {selectedItem && selectedItem.Currency}</span>
+                </div>
+              }
+            </div>
+          }>
+            <span className='gr-flex'>
+              <span className='text-15' style={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                fontWeight: '400',
+                gap: '8px'
+              }}>Tổng chi phí tạm tính  <PiWarningCircleThin /></span>
+              <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
+            </span>
+          </Tooltip>
+          <span className='text-15' style={{ fontWeight: '500' }}>{selectedItem && formatNumber(selectedItem.TotalPrice)} {selectedItem && selectedItem.Currency}</span>
           {selectedItem && tripType === true
             ? <button className={'view-deal'} onClick={() => addNewItem({
               key: pageRevert,
@@ -358,6 +412,7 @@ console.log(selectedItem)
               Airline: selectedItem.Airline,
               Adt: selectedItem.Adt,
               Chd: selectedItem.Chd,
+              AirlineOperating: selectedItem.AirlineOperating,
               Inf: selectedItem.Inf,
               Currency: selectedItem.Currency,
               EndDate: selectedItem.EndDate,
@@ -394,6 +449,7 @@ console.log(selectedItem)
                 Airline: selectedItem.Airline,
                 Adt: selectedItem.Adt,
                 Chd: selectedItem.Chd,
+                AirlineOperating: selectedItem.AirlineOperating,
                 Inf: selectedItem.Inf,
                 Currency: selectedItem.Currency,
                 EndDate: selectedItem.EndDate,
@@ -442,10 +498,40 @@ console.log(selectedItem)
         width={'fit-content'}
         open={openBooking}
         footer={<div className='tab-footer'>
-          <span className='gr-flex'>
-            <span className='text-15' style={{ fontWeight: '400' }}>Tổng chi phí tạm tính</span>
-            <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
-          </span>
+
+          <Tooltip color='white' placement="topLeft" title={
+            <div className='tooltip-content'>
+              {newArray.length > 0 && newArray[0].Adt > 0
+                && <div className='content-flex-row'>
+                  <span className='text-13'>Vé người lớn x {newArray[0].Adt}</span>
+                  <span className='text-13'>{formatNumber(totalAdt)} {newArray[0].Currency}</span>
+                </div>
+              }
+              {newArray.length > 0 && newArray[0].Chd > 0
+                && <div className='content-flex-row'>
+                  <span className='text-13'>Vé trẻ em x {newArray[0].Chd}</span>
+                  <span className='text-13'>{formatNumber(totalChd)} {newArray[0].Currency}</span>
+                </div>
+              }
+              {newArray.length > 0 && newArray[0].Inf > 0
+                && <div className='content-flex-row'>
+                  <span className='text-13'>Vé em bé x {newArray[0].Inf}</span>
+                  <span className='text-13'>{formatNumber(totalInf)} {newArray[0].Currency}</span>
+                </div>
+              }
+            </div>
+          }>
+            <span className='gr-flex'>
+              <span className='text-15' style={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                fontWeight: '400',
+                gap: '8px'
+              }}>Tổng chi phí tạm tính  <PiWarningCircleThin /></span>
+              <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
+            </span>
+          </Tooltip>
           <span className='text-15' style={{ fontWeight: '500' }}>{total.toLocaleString("vi-VN")} VNĐ</span>
           <Link to={'/booking'}>
             <button className='continue'>Tiếp tục</button>
@@ -457,7 +543,6 @@ console.log(selectedItem)
         </div>
       </Drawer>
       <div className='paginated-main'>
-
         <div className='paginated-row grid-container'>
           {loading
             ? <Skeleton avatar paragraph={{ rows: 4 }} style={{ gridColumn: 'span 2 / span 2' }} active />
@@ -468,7 +553,7 @@ console.log(selectedItem)
                   <div className='paginated-item items' key={`element_${index}`}>
                     <div className='frame-item-col'>
                       <div className='item-flex' onClick={() => handleDivClick(index)}>
-                        {getAirlineLogo(element.Airline, '60px')}
+                        {getAirlineLogo(element.AirlineOperating, '60px')}
                         <div className='flex-center-item'>
                           <div className='item-col fix-content'>
                             <h4 className="searchMenu__title text-truncate">{element.StartTime}</h4>
@@ -501,6 +586,7 @@ console.log(selectedItem)
                           Airline: element.Airline,
                           Adt: element.Adt,
                           Chd: element.Chd,
+                          AirlineOperating: element.AirlineOperating,
                           Inf: element.Inf,
                           Currency: element.Currency,
                           EndDate: element.EndDate,
@@ -537,6 +623,7 @@ console.log(selectedItem)
                             Airline: element.Airline,
                             Adt: element.Adt,
                             Chd: element.Chd,
+                            AirlineOperating: element.AirlineOperating,
                             Inf: element.Inf,
                             Currency: element.Currency,
                             EndDate: element.EndDate,

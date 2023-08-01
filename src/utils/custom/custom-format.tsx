@@ -5,18 +5,19 @@ dayjs.locale('vi')
 export const getAirlineLogo = (abbr: string, style: string) => {
     switch (abbr) {
         case 'VJ':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietjetair.jpg' alt='vj' />;
+            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/VJ.svg' alt='vj' />;
         case 'VN':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietnamairlines.png' alt='vn' />;
+            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/VN.svg' alt='vn' />;
         case 'QH':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/bamboo.png' alt='qh' />;
+            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/QH.svg' alt='qh' />;
         case 'VU':
             return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietravel.png' alt='vu' />;
+        case 'BL':
+            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/BL.svg' alt='bl' />;
         default:
             return <img style={{ width: style, height: style }} className='paginated-item-img' alt={abbr} />;
     }
 };
-
 export const getNumberOfStops = (item: any) => {
     const numSegments = item.ListSegment.length;
     if (numSegments > 1) {
@@ -83,7 +84,16 @@ export const getAirlineFullName = (abbr: string) => {
             return 'Bamboo Airways';
         case 'VU':
             return 'Vietravel';
+        case 'BL':
+            return 'Pacific Airlines';
         default:
             return abbr;
     }
 };
+
+export function formatNumber(number: number) {
+    const roundedNumber = Math.ceil(number / 1000) * 1000;
+    const formattedNumber = new Intl.NumberFormat('vi-VN').format(roundedNumber);
+
+    return formattedNumber;
+}

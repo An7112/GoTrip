@@ -105,6 +105,9 @@ function Home() {
         }
     }, [twoWay])
 
+    useEffect(() => {
+        localStorage.removeItem('bookingInf')
+    },[])
 
     useEffect(() => {
         const defaultValueStr = localStorage.getItem('filterHome');

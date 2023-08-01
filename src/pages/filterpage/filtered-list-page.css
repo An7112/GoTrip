@@ -445,6 +445,23 @@
     grid-column: span 5 / span 5;
 }
 
+
+.custom-tabs.filter .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab .ant-tabs-tab-btn{
+    background-color: #3554d1;
+    padding: 12px;
+    color: white !important;
+    border-radius: 4px;
+}
+@keyframes flashing {
+  0% { color: rgb(86, 128, 182); }
+  50% { color: white; }
+  100% { color: rgb(86, 128, 182); }
+}
+
+.flashing-tab {
+  animation: flashing 2s linear infinite;
+}
+
 .custom-tabs .ant-tabs-nav .ant-tabs-nav-wrap {
     align-items: center;
     justify-content: center;

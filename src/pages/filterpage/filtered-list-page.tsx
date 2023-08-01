@@ -35,7 +35,6 @@ const listValueStopsFilter = [
     '1 Stop',
     '2+ Stops'
 ]
-
 interface MinFareByAirlines {
     airline: string;
     minFareAdtFull: number;
@@ -86,6 +85,7 @@ function FilteredListPage() {
     const [loading, setLoading] = useState(true)
     const [loading2, setLoading2] = useState(true)
     const [pageRevert, setPageRevert] = useState(1)
+    const [flashingTab, setFlashingTab] = useState<string>('');
     const [flyingTo, setFlyingTo] = useState('')
     const [flyingToReturn, setFlyingToReturn] = useState('')
     const [departDay, setDepart] = useState('')
@@ -114,6 +114,17 @@ function FilteredListPage() {
         setTimeLine(formattedTime)
         setFilters((prevFilters) => ({ ...prevFilters, timeLine: formattedTime }));
     }
+
+    useEffect(() => {
+        if (flashingTab) {
+            const timeout = setTimeout(() => {
+                setFlashingTab('');
+            }, 3000);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [flashingTab]);
+
 
     const flattenDomesticDatas = (response: any) => {
         if (response.DomesticDatas && Array.isArray(response.DomesticDatas)) {
@@ -373,7 +384,6 @@ function FilteredListPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location, statusOpenTab2])
 
-    console.log(filteredData)
     const handleFilterChange = (filterKey: string, checkedValues: string[] | boolean) => {
         setFilters((prevFilters) => ({ ...prevFilters, [filterKey]: checkedValues }));
     };
@@ -397,10 +407,10 @@ function FilteredListPage() {
     }, [tripType])
 
     const flightTimesMap = [
-        { label: 'Sáng sớm', startTime: '00:00', endTime: '06:00' },
-        { label: 'Buổi sáng', startTime: '06:00', endTime: '12:00' },
-        { label: 'Buổi chiều', startTime: '12:00', endTime: '18:00' },
-        { label: 'Buổi tối', startTime: '18:00', endTime: '24:00' },
+        { label: 'Sáng sớm', startTime: '00:00', endTime: '06:00', icon: <img src='/media/flightIcons/sun-rise.svg' alt='sun-rise' /> },
+        { label: 'Buổi sáng', startTime: '06:00', endTime: '12:00', icon: <img src='/media/flightIcons/morning.svg' alt='sun-rise' /> },
+        { label: 'Buổi chiều', startTime: '12:00', endTime: '18:00', icon: <img src='/media/flightIcons/sun-shine.svg' alt='sun-rise' /> },
+        { label: 'Buổi tối', startTime: '18:00', endTime: '24:00', icon: <img src='/media/flightIcons/night.svg' alt='sun-rise' /> },
     ]
 
     const handleItemClick = (item: FlightTime) => {
@@ -483,17 +493,17 @@ function FilteredListPage() {
                 const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
                 const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
 
-                return isAirlineMatch 
-                && isCabinMatch 
-                && isHandBaggageMatch 
-                && isPromoMatch 
-                && isItemStartTimeMatch 
-                && isStopsMatch 
-                && isStartTimeMatch 
-                && isEndTimeMatch
-                && isStartTimeMatchEnd
-                && isEndTimeMatchEnd
-                ;
+                return isAirlineMatch
+                    && isCabinMatch
+                    && isHandBaggageMatch
+                    && isPromoMatch
+                    && isItemStartTimeMatch
+                    && isStopsMatch
+                    && isStartTimeMatch
+                    && isEndTimeMatch
+                    && isStartTimeMatchEnd
+                    && isEndTimeMatchEnd
+                    ;
             });
 
             const filteredData2 = paginatedData2.filter((item) => {
@@ -512,17 +522,17 @@ function FilteredListPage() {
                 const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
                 const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
 
-                return isAirlineMatch 
-                && isCabinMatch 
-                && isHandBaggageMatch 
-                && isPromoMatch 
-                && isItemStartTimeMatch 
-                && isStopsMatch 
-                && isStartTimeMatch 
-                && isEndTimeMatch
-                && isStartTimeMatchEnd
-                && isEndTimeMatchEnd
-                ;
+                return isAirlineMatch
+                    && isCabinMatch
+                    && isHandBaggageMatch
+                    && isPromoMatch
+                    && isItemStartTimeMatch
+                    && isStopsMatch
+                    && isStartTimeMatch
+                    && isEndTimeMatch
+                    && isStartTimeMatchEnd
+                    && isEndTimeMatchEnd
+                    ;
             });
 
             setFilteredData2(filteredData2);
@@ -544,17 +554,17 @@ function FilteredListPage() {
                 const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
                 const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
 
-                return isAirlineMatch 
-                && isCabinMatch 
-                && isHandBaggageMatch 
-                && isPromoMatch 
-                && isItemStartTimeMatch 
-                && isStopsMatch 
-                && isStartTimeMatch 
-                && isEndTimeMatch
-                && isStartTimeMatchEnd
-                && isEndTimeMatchEnd
-                ;
+                return isAirlineMatch
+                    && isCabinMatch
+                    && isHandBaggageMatch
+                    && isPromoMatch
+                    && isItemStartTimeMatch
+                    && isStopsMatch
+                    && isStartTimeMatch
+                    && isEndTimeMatch
+                    && isStartTimeMatchEnd
+                    && isEndTimeMatchEnd
+                    ;
             });
 
             setFilteredData(filteredData);
@@ -562,6 +572,9 @@ function FilteredListPage() {
     }, [filters, paginatedData, paginatedData2, tripType, selectedFlight, selectedFlightEnd]);
 
     const handleNumberChange = (number: number) => {
+        if (String(number) !== String(pageRevert)) {
+            setFlashingTab(String(number));
+        }
         setPageRevert(number)
     };
 
@@ -569,6 +582,14 @@ function FilteredListPage() {
         setOpen(false);
     };
 
+    const handleTabChange = (value: string) => {
+        if (value !== String(pageRevert)) {
+            setFlashingTab(value);
+        }
+        setPageRevert(Number(value));
+    };
+
+    console.log(filteredData)
     return (
         <div className='filter-page'>
             <TopFilter />
@@ -583,26 +604,6 @@ function FilteredListPage() {
                     <div className='container-filter'>
                         <div className='frame-filter-flex'>
                             <div className='list-gr-filter' style={{ display: 'flex', flexDirection: 'column' }}>
-                                <div className='gr-filter'>
-                                    <h5 className='filter-title'>Stops</h5>
-                                    {listValueStopsFilter.map((option) => (
-                                        <div className="flex-col-item">
-                                            <div className="flex-between">
-                                                <input
-                                                    type="checkbox"
-                                                    value={option}
-                                                    checked={filters.stops.includes(option)}
-                                                    onChange={() => handleFilterChange("stops", filters.stops.includes(option) ? filters.stops.filter((item) => item !== option) : [...filters.stops, option])}
-                                                />
-                                                <p className="title text-truncate">
-                                                    {option}
-                                                </p>
-                                            </div>
-                                            <p className="filter-item text-truncate">{pageRevert === 1 ? minFareAdtFull.toLocaleString('en-US') : minFareAdtFull2.toLocaleString('en-US')} VNĐ</p>
-                                        </div>
-                                    ))
-                                    }
-                                </div>
                                 <div className='gr-filter'>
                                     <h5 className='filter-title'>Airlines</h5>
                                     {pageRevert === 1
@@ -811,6 +812,7 @@ function FilteredListPage() {
                                                 )
                                                 return (
                                                     <div onClick={() => handleItemClick(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                        <p style={{ filter: active ? 'brightness(0) invert(1)' : '' }}>{element.icon}</p>
                                                         <p className='text-14'>{element.label}</p>
                                                         <p className='text-14'>{element.startTime} - {element.endTime}</p>
                                                     </div>
@@ -843,6 +845,7 @@ function FilteredListPage() {
                                                 )
                                                 return (
                                                     <div onClick={() => handleItemClickEnd(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                        <p style={{ filter: active ? 'brightness(0) invert(1)' : '' }}>{element.icon}</p>
                                                         <p className='text-14'>{element.label}</p>
                                                         <p className='text-14'>{element.startTime} - {element.endTime}</p>
                                                     </div>
@@ -851,20 +854,9 @@ function FilteredListPage() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </Drawer>
-                <div className='container-filter'>
-                    {loading && <LoadingBar progress={progress} />}
-                    {tripType === true && <MiniBooking />}
-                    <div className='frame-filter-flex'>
-                        <div className='list-gr-filter visible'>
-                            <div className='gr-filter'>
-                                <h5 className='filter-title'>Stops</h5>
-                                {loading
-                                    ? <Skeleton paragraph={{ rows: 4 }} active />
-                                    : listValueStopsFilter.map((option) => (
+                                <div className='gr-filter'>
+                                    <h5 className='filter-title'>Stops</h5>
+                                    {listValueStopsFilter.map((option) => (
                                         <div className="flex-col-item">
                                             <div className="flex-between">
                                                 <input
@@ -880,8 +872,17 @@ function FilteredListPage() {
                                             <p className="filter-item text-truncate">{pageRevert === 1 ? minFareAdtFull.toLocaleString('en-US') : minFareAdtFull2.toLocaleString('en-US')} VNĐ</p>
                                         </div>
                                     ))
-                                }
+                                    }
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                </Drawer>
+                <div className='container-filter'>
+                    {loading && <LoadingBar progress={progress} />}
+                    {tripType === true && <MiniBooking />}
+                    <div className='frame-filter-flex'>
+                        <div className='list-gr-filter visible'>
                             <div className='gr-filter'>
                                 <h5 className='filter-title'>Airlines</h5>
                                 {loading
@@ -1075,74 +1076,100 @@ function FilteredListPage() {
                                 }
                             </div> */}
                             <div className='gr-filter' style={{ maxHeight: 'none' }}>
-                                    <h5 className='filter-title'>Flight Times</h5>
-                                    <div className='gr-flex-col'>
-                                        <div className='flex-col-item'>
-                                            <div className='flex-between'>
-                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Take off</p>
-                                            </div>
-                                        </div>
-                                        <div className='flex-col-item'>
-                                            <div className='flex-between'>
-                                                {selectedFlight.length === 4 || selectedFlight.length === 0
-                                                    ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
-                                                    : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
-                                                        {selectedFlight.map((element) => element.label).join(', ')}
-                                                    </p>
-                                                }
-                                            </div>
+                                <h5 className='filter-title'>Flight Times</h5>
+                                <div className='gr-flex-col'>
+                                    <div className='flex-col-item'>
+                                        <div className='flex-between'>
+                                            <p className='title text-truncate' style={{ fontWeight: '600' }}>Take off</p>
                                         </div>
                                     </div>
-                                    <div className='gr-flex-col'>
-                                        <div className='grid-item'>
-                                            {flightTimesMap.map((element) => {
-                                                const active = selectedFlight.some(
-                                                    (selectedItem) => selectedItem.label === element.label
-                                                )
-                                                return (
-                                                    <div onClick={() => handleItemClick(element)} className={active ? 'item active' : 'item'} key={element.label}>
-                                                        <p className='text-14'>{element.label}</p>
-                                                        <p className='text-14'>{element.startTime} - {element.endTime}</p>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                    <div className='gr-flex-col'>
-                                        <div className='flex-col-item'>
-                                            <div className='flex-between'>
-                                                <p className='title text-truncate' style={{ fontWeight: '600' }}>Landing time</p>
-                                            </div>
-                                        </div>
-                                        <div className='flex-col-item'>
-                                            <div className='flex-between'>
-                                                {selectedFlightEnd.length === 4 || selectedFlightEnd.length === 0
-                                                    ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
-                                                    : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
-                                                        {selectedFlightEnd.map((element) => element.label).join(', ')}
-                                                    </p>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className='gr-flex-col'>
-                                        <div className='grid-item'>
-                                            {flightTimesMap.map((element) => {
-                                                const active = selectedFlightEnd.some(
-                                                    (selectedItem) => selectedItem.label === element.label
-                                                )
-                                                return (
-                                                    <div onClick={() => handleItemClickEnd(element)} className={active ? 'item active' : 'item'} key={element.label}>
-                                                        <p className='text-14'>{element.label}</p>
-                                                        <p className='text-14'>{element.startTime} - {element.endTime}</p>
-                                                    </div>
-                                                )
-                                            })}
+                                    <div className='flex-col-item'>
+                                        <div className='flex-between'>
+                                            {selectedFlight.length === 4 || selectedFlight.length === 0
+                                                ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
+                                                : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
+                                                    {selectedFlight.map((element) => element.label).join(', ')}
+                                                </p>
+                                            }
                                         </div>
                                     </div>
                                 </div>
+                                <div className='gr-flex-col'>
+                                    <div className='grid-item'>
+                                        {flightTimesMap.map((element) => {
+                                            const active = selectedFlight.some(
+                                                (selectedItem) => selectedItem.label === element.label
+                                            )
+                                            return (
+                                                <div onClick={() => handleItemClick(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                    <p style={{ filter: active ? 'brightness(0) invert(1)' : '' }}>{element.icon}</p>
+                                                    <p className='text-14'>{element.label}</p>
+                                                    <p className='text-14'>{element.startTime} - {element.endTime}</p>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                                <div className='gr-flex-col'>
+                                    <div className='flex-col-item'>
+                                        <div className='flex-between'>
+                                            <p className='title text-truncate' style={{ fontWeight: '600' }}>Landing time</p>
+                                        </div>
+                                    </div>
+                                    <div className='flex-col-item'>
+                                        <div className='flex-between'>
+                                            {selectedFlightEnd.length === 4 || selectedFlightEnd.length === 0
+                                                ? <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>Bất kỳ lúc nào</p>
+                                                : <p style={{ color: '#3554d1', fontSize: '14px' }} className='title text-truncate'>
+                                                    {selectedFlightEnd.map((element) => element.label).join(', ')}
+                                                </p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='gr-flex-col'>
+                                    <div className='grid-item'>
+                                        {flightTimesMap.map((element) => {
+                                            const active = selectedFlightEnd.some(
+                                                (selectedItem) => selectedItem.label === element.label
+                                            )
+                                            return (
+                                                <div onClick={() => handleItemClickEnd(element)} className={active ? 'item active' : 'item'} key={element.label}>
+                                                    <p style={{ filter: active ? 'brightness(0) invert(1)' : '' }}>{element.icon}</p>
+                                                    <p className='text-14'>{element.label}</p>
+                                                    <p className='text-14'>{element.startTime} - {element.endTime}</p>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='line-row'>
+                            </div>
+                            <div className='gr-filter'>
+                                <h5 className='filter-title'>Stops</h5>
+                                {loading
+                                    ? <Skeleton paragraph={{ rows: 4 }} active />
+                                    : listValueStopsFilter.map((option) => (
+                                        <div className="flex-col-item">
+                                            <div className="flex-between">
+                                                <input
+                                                    type="checkbox"
+                                                    value={option}
+                                                    checked={filters.stops.includes(option)}
+                                                    onChange={() => handleFilterChange("stops", filters.stops.includes(option) ? filters.stops.filter((item) => item !== option) : [...filters.stops, option])}
+                                                />
+                                                <p className="title text-truncate">
+                                                    {option}
+                                                </p>
+                                            </div>
+                                            <p className="filter-item text-truncate">{pageRevert === 1 ? minFareAdtFull.toLocaleString('en-US') : minFareAdtFull2.toLocaleString('en-US')} VNĐ</p>
+                                        </div>
+                                    ))
+                                }
+                            </div>
                         </div>
-                        <div className='frame-paginated-flex'>
+                        <div className='frame-paginated-flex' id="scroll">
                             <div className='flex-col-top'>
                                 <div className='flex-row'>
                                     {loading
@@ -1205,12 +1232,12 @@ function FilteredListPage() {
                             {tripType === true
                                 ? <Tabs
                                     defaultActiveKey="1"
-                                    onChange={(value) => setPageRevert(Number(value))}
+                                    onChange={(value) => handleTabChange(value)}
                                     activeKey={String(pageRevert)}
-                                    className='custom-tabs'
+                                    className='custom-tabs filter'
                                     items={[
                                         {
-                                            label: 'Chuyến đi',
+                                            label: <span className={flashingTab === '1' ? 'flashing-tab' : ''}>Chuyến đi</span>,
                                             key: '1',
                                             children: <>
                                                 <div className='slider-top-filter'>
@@ -1220,7 +1247,7 @@ function FilteredListPage() {
                                             </>,
                                         },
                                         {
-                                            label: 'Chuyến về',
+                                            label: <span className={flashingTab === '2' ? 'flashing-tab' : ''}>Chuyến về </span>,
                                             key: '2',
                                             children: <>
                                                 <div className='slider-top-filter'>

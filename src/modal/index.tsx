@@ -38,6 +38,7 @@ export interface BookingType {
     FlightNumber: string,
     StartDate: string,
     StartTime: string,
+    AirlineOperating: string,
     Adt: number,
     Chd: number,
     Inf: number,

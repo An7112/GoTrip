@@ -7,8 +7,8 @@ import dayjs from 'dayjs';
 // import 'antd/dist/antd.css';
 import 'dayjs/locale/vi';
 import { BookingType } from 'modal/index';
-import { convertCity, formatNgayThangNam, formatNgayThangNam3, formatNgayThangNam4, getAirlineFullName, getNumberOfStops } from 'utils/custom/custom-format';
-import { useDispatch } from 'react-redux';
+import { convertCity, formatNgayThangNam, formatNgayThangNam3, formatNgayThangNam4, getAirlineFullName, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format';
+import { useDispatch, useSelector } from 'react-redux';
 import { setOutPage } from 'store/reducers';
 dayjs.locale('vi')
 
@@ -28,6 +28,7 @@ const { Option } = Select;
 
 function Booking() {
 
+    const { listGeoCodeOneTrip, allData, allDataTwo } = useSelector((state: any) => state)
 
     const countryCodes = ['+84', '+1', '+44', '+86', '+81'];
     const content = ['Ông', 'Bà'];
@@ -88,7 +89,6 @@ function Booking() {
     };
 
     const handleInputChangeInf = (index: number, field: string, value: any) => {
-        console.log(index, field, value)
         const updatedFormData: any = [...formDataInf];
         updatedFormData[index][field] = value;
         setFormDataInf(updatedFormData);
@@ -163,22 +163,6 @@ function Booking() {
         console.log([...formDataInf, ...formDataInfChid, ...formDataInfBaby]);
     };
 
-
-    const getAirlineLogo = (abbr: string, style: string) => {
-        switch (abbr) {
-            case 'VJ':
-                return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietjetair.jpg' alt='vj' />;
-            case 'VN':
-                return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietnamairlines.png' alt='vn' />;
-            case 'QH':
-                return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/bamboo.png' alt='qh' />;
-            case 'VU':
-                return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietravel.png' alt='vu' />;
-            default:
-                return <img style={{ width: style, height: style }} className='paginated-item-img' alt={abbr} />;
-        }
-    };
-
     function formatNumber(number: number) {
         const roundedNumber = Math.ceil(number / 1000) * 1000;
         const formattedNumber = new Intl.NumberFormat('vi-VN').format(roundedNumber);
@@ -194,6 +178,37 @@ function Booking() {
         num +=
         (cur.FareAdt * cur.Adt + cur.FareChd * cur.Chd + cur.FareInf * cur.Inf + cur.TotalFeeTaxAdt + cur.TotalFeeTaxChd + cur.TotalFeeTaxInf)
         , 0)
+
+    const flattenListAircraft = (response: any) => {
+        if (response.ListAircraft && Array.isArray(response.ListAircraft)) {
+            return response.ListAircraft;
+        }
+        return [];
+    };
+
+
+    const flatData = [...allData, ...allDataTwo].flatMap((response: any) => flattenListAircraft(response)) ?? []
+
+    const uniqueSet = new Set(flatData.map((item: any) => JSON.stringify(item)));
+    const uniqueArray = Array.from(uniqueSet).map((item: any) => JSON.parse(item));
+
+    const getTypePlaneMap = (item: any) => {
+        const typePlane = item && uniqueArray.length > 0
+            ? uniqueArray.find((element: any) => element.IATA === item.ListSegment[0].Plane)?.Manufacturer
+            : '';
+        return typePlane
+    }
+
+
+    const getAirPortName = (item: any, key: string) => {
+        if (key === 'start') {
+            const airportNameStart = listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === item.StartPoint).AirportName
+            return airportNameStart
+        } else {
+            const airportNameEnd = listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === item.EndPoint).AirportName
+            return airportNameEnd
+        }
+    }
 
     return (
         <section className='booking-section'>
@@ -506,14 +521,18 @@ function Booking() {
                                 <div className='plane-frame'>
                                     <p className='header-text text-15'><button className='continue'>Chuyến {index === 0 ? 'đi' : 'về'}</button> • {formatNgayThangNam3(element.StartDate)}</p>
                                     <div className='frame-booking-logo'>
-                                        {getAirlineLogo(element.ListSegment[0].Airline, '40px')}
+                                        {getAirlineLogo(element.AirlineOperating, '40px')}
                                         <div className='booking-logo-col'>
                                             <p className='header-text text-15'>
-                                                {getAirlineFullName(element.ListSegment[0].Airline)}
+                                                {getAirlineFullName(element.AirlineOperating)}
                                             </p>
                                             <p className='header-text text-15 blur'>
                                                 {element.FlightNumber}
                                             </p>
+                                        </div>
+                                        <div className='booking-logo-col' style={{width:'100%'}}>
+                                            <span className='text-15' style={{textAlign:'right'}}><strong>{getTypePlaneMap(element)} {element.ListSegment[0]?.Plane}</strong> </span>
+                                            <span className='text-15' style={{textAlign:'right'}}><strong>{element.ListSegment[0].Cabin}</strong></span>
                                         </div>
                                     </div>
                                     <div className='flex-center-item booking'>
