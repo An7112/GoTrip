@@ -51,12 +51,21 @@ export const calculateTimeDifference = (endDate: string, startDate: string): str
 
 export const formatDayByDate = (dateTimeString: string): string => {
     const vietnamTime = dayjs(dateTimeString, { utc: true });
-    const formattedDate = vietnamTime.format("dddd, DD/MM/YYYY");
+    const formattedDate = vietnamTime.format("dddd, DD/MM/YYYY").replace(/\b\w/, (char) => char.toUpperCase());
     return formattedDate;
 };
 
 export const getNumberOfStops = (item: any) => {
     const numSegments = item.listFlight[0].stopNum;
+    if (numSegments > 1) {
+        return `${numSegments - 1} Stops`;
+    } else {
+        return 'Nonstop';
+    }
+};
+
+export const getNumberOfStops2 = (item: any) => {
+    const numSegments = item.ListSegment[0].stopNum;
     if (numSegments > 1) {
         return `${numSegments - 1} Stops`;
     } else {

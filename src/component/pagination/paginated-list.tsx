@@ -6,7 +6,7 @@ import { Button, Drawer, Empty, Skeleton, Tabs, TabsProps, Tooltip } from 'antd'
 import { ListSegmentType } from 'modal/index';
 import { useDispatch, useSelector } from 'react-redux';
 import { setBooking, setOutPage, setSelectedItem } from 'store/reducers';
-import { calculateTimeDifference, convertCity, formatDate, formatDayByDate, formatHoursMinutes, formatNgayThangNam2, formatNgayThangNam3, formatNgayThangNam4, formatTimeByDate, getAirlineFullName, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format';
+import { calculateTimeDifference, convertCity, formatDate, formatDayByDate, formatHoursMinutes, formatNgayThangNam2, formatNgayThangNam3, formatNgayThangNam4, formatTimeByDate, getAirlineFullName, getAirlineLogo, getNumberOfStops, getNumberOfStops2 } from 'utils/custom/custom-format';
 import { FaPlaneArrival, FaPlaneDeparture } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { PiWarningCircleThin } from 'react-icons/pi'
@@ -189,7 +189,7 @@ const PaginatedList = (props: IProps) => {
           <div className='tab-item-flex-col'>
             <div className='tab-item-row'>
               <span className='trip-type'>{pageRevert === 1 ? 'Chuyến đi' : 'Chuyến về'}</span>
-              <span className='text-15'>Nonstop</span>
+              <span className='text-15'>{getNumberOfStops(selectedItem)}</span>
             </div>
             <div className='tab-item-row'>
               <span className='gr-flex'>
@@ -267,7 +267,7 @@ const PaginatedList = (props: IProps) => {
             </h3>
             <div className='tab-item-row'>
               <span className='trip-type'>{element.FlightNumber}</span>
-              <span className='text-15'>Nonstop</span>
+              <span className='text-15'>{getNumberOfStops2(element)}</span>
             </div>
             <div className='tab-item-row'>
               <span className='gr-flex'>
@@ -350,7 +350,7 @@ const PaginatedList = (props: IProps) => {
     (cur.TotalPriceInf * cur.Inf)
     , 0)
 
-    console.log(dataBooking)
+    console.log(selectedItem)
 
   return (
     <>
@@ -429,6 +429,7 @@ const PaginatedList = (props: IProps) => {
                   AllowanceBaggage: item.allowanceBaggage ?? 0,
                   Cabin: selectedItem.listFlight[0].groupClass,
                   Plane: item.plane,
+                  stopNum: selectedItem.listFlight[0].stopNum,
                   Class: item.class,
                   HandBaggage: item.handBaggage
                 }
@@ -471,6 +472,7 @@ const PaginatedList = (props: IProps) => {
                     Cabin: selectedItem.listFlight[0].groupClass,
                     Plane: item.plane,
                     Class: item.class,
+                    stopNum: selectedItem.listFlight[0].stopNum,
                     HandBaggage: item.handBaggage
                   }
                 }),
@@ -612,6 +614,7 @@ const PaginatedList = (props: IProps) => {
                               Cabin: element.listFlight[0].groupClass,
                               Plane: item.plane,
                               Class: item.class,
+                              stopNum: element.listFlight[0].stopNum,
                               HandBaggage: item.handBaggage
                             }
                           }),
@@ -652,6 +655,7 @@ const PaginatedList = (props: IProps) => {
                                 AllowanceBaggage: item.allowanceBaggage ?? 0,
                                 Cabin: element.listFlight[0].groupClass,
                                 Plane: item.plane,
+                                stopNum: element.listFlight[0].stopNum,
                                 Class: item.class,
                                 HandBaggage: item.handBaggage
                               }

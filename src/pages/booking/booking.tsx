@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import './booking.css'
 import { BiSolidPlaneAlt } from 'react-icons/bi'
-import { Button, DatePicker, Form, Input, InputNumber, Select, Checkbox } from 'antd'
+import { Button, DatePicker, Form, Input, Select, Checkbox } from 'antd'
 import { Row, Col } from 'antd';
 import dayjs from 'dayjs';
 
 import { BookingType } from 'modal/index';
-import { convertCity, formatNgayThangNam, formatNgayThangNam3, formatNgayThangNam4, getAirlineFullName, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format';
-import { useDispatch, useSelector } from 'react-redux';
+import { convertCity, formatNgayThangNam3, getAirlineFullName, getAirlineLogo, getNumberOfStops2 } from 'utils/custom/custom-format';
+import { useSelector } from 'react-redux';
 
 interface FormData {
     lastname?: string;
@@ -542,7 +542,7 @@ function Booking() {
                                                 <div className='line'></div>
                                                 <div className='dot right'></div>
                                             </div>
-                                            <p className='filter-item fix-content'>{getNumberOfStops(element)}</p>
+                                            <p className='filter-item fix-content'>{getNumberOfStops2(element)}</p>
                                         </div>
                                         <div className='item-col fix-content'>
                                             <h4 className="searchMenu__title text-truncate">{element.EndTime}</h4>
