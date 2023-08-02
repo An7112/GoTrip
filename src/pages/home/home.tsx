@@ -6,7 +6,6 @@ import { Dropdown, DatePicker, Select, Switch, Form, Button, Modal, Input, Empty
 import 'slick-carousel/slick/slick-theme.css';
 import dayjs from 'dayjs';
 import './home.css'
-import 'dayjs/locale/vi';
 import { useNavigate } from 'react-router-dom';
 import SectionPopular from './section-popular/section-popular';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -14,7 +13,6 @@ import { dataCountry, mapOption } from 'utils/data-country';
 const { Option } = Select;
 
 dayjs.extend(customParseFormat);
-dayjs.locale('vi');
 
 interface Filters {
     [key: string]: string;
@@ -107,13 +105,14 @@ function Home() {
 
     useEffect(() => {
         localStorage.removeItem('bookingInf')
-    },[])
+    }, [])
 
     useEffect(() => {
         const defaultValueStr = localStorage.getItem('filterHome');
         if (defaultValueStr) {
             try {
                 const defaultValue = JSON.parse(defaultValueStr);
+                console.log(defaultValue.departDate)
                 setOnchangeValueDepart(defaultValue.startPoint);
                 setOnchangeValueToReturn(defaultValue.endPoint);
                 setAdults(Number(defaultValue.adults));
@@ -130,11 +129,12 @@ function Home() {
     }, []);
 
     useEffect(() => {
-        if (startDate == null || startDate === '') {
+        const defaultValueStr = localStorage.getItem('filterHome');
+        if (!defaultValueStr) {
             const formattedStartDate = todayDate.format('DDMMYYYY');
             setStartDate(formattedStartDate)
         }
-    }, [startDate, todayDate])
+    }, [])
 
     const handleDateChangeStart = (dates: any) => {
         if (dates) {

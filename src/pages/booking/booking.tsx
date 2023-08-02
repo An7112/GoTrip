@@ -4,14 +4,10 @@ import { BiSolidPlaneAlt } from 'react-icons/bi'
 import { Button, DatePicker, Form, Input, InputNumber, Select, Checkbox } from 'antd'
 import { Row, Col } from 'antd';
 import dayjs from 'dayjs';
-// import 'antd/dist/antd.css';
-import 'dayjs/locale/vi';
+
 import { BookingType } from 'modal/index';
 import { convertCity, formatNgayThangNam, formatNgayThangNam3, formatNgayThangNam4, getAirlineFullName, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format';
 import { useDispatch, useSelector } from 'react-redux';
-import { setOutPage } from 'store/reducers';
-dayjs.locale('vi')
-
 
 interface FormData {
     lastname?: string;
@@ -176,7 +172,7 @@ function Booking() {
 
     const total = dataBooking.reduce((num, cur) =>
         num +=
-        (cur.FareAdt * cur.Adt + cur.FareChd * cur.Chd + cur.FareInf * cur.Inf + cur.TotalFeeTaxAdt + cur.TotalFeeTaxChd + cur.TotalFeeTaxInf)
+        (cur.TotalPriceAdt * cur.Adt + cur.TotalPriceChd * cur.Chd + cur.TotalPriceInf * cur.Inf)
         , 0)
 
     const flattenListAircraft = (response: any) => {
@@ -556,15 +552,15 @@ function Booking() {
                                     <div className='frame-price'>
                                         {element.Adt > 0 && <div className='price-item'>
                                             <p className='title'>Vé người lớn</p>
-                                            <p className='title'>{element.Adt} x {element.FareAdt.toLocaleString("vi-VN")} {element.Currency}</p>
+                                            <p className='title'>{element.Adt} x {element.TotalPriceAdt.toLocaleString("vi-VN")} {element.Currency}</p>
                                         </div>}
                                         {element.Chd > 0 && <div className='price-item'>
                                             <p className='title'>Vé người trẻ em</p>
-                                            <p className='title'>{element.Chd} x {element.FareChd.toLocaleString("vi-VN")} {element.Currency}</p>
+                                            <p className='title'>{element.Chd} x {element.TotalPriceChd.toLocaleString("vi-VN")} {element.Currency}</p>
                                         </div>}
                                         {element.Inf > 0 && <div className='price-item'>
                                             <p className='title'>Vé em bé</p>
-                                            <p className='title'>{element.Inf} x {element.FareInf.toLocaleString("vi-VN")} {element.Currency}</p>
+                                            <p className='title'>{element.Inf} x {element.TotalPriceInf.toLocaleString("vi-VN")} {element.Currency}</p>
                                         </div>}
                                         <div className='price-item'>
                                             <p className='title'>Tổng thuế và phí</p>

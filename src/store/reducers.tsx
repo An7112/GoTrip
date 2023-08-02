@@ -23,6 +23,7 @@ export interface BookingType {
     listGeoCodeTwoTrip: TypeGeoCode[],
     allData: any[],
     allDataTwo: any[],
+    AllListFlight: any[],
     dateTrendActive: string,
 }
 
@@ -36,6 +37,7 @@ const initialState: BookingType = {
     allData: [],
     allDataTwo: [],
     dateTrendActive: departDate,
+    AllListFlight: [],
 }
 
 const bookingSlice = createSlice({
@@ -69,6 +71,9 @@ const bookingSlice = createSlice({
         setAllDataTwo: (state, action: PayloadAction<any[]>) => {
             state.allDataTwo = action.payload
         },
+        setAllListFlight: (state, action: PayloadAction<any[]>) => {
+            state.AllListFlight = action.payload
+        },
     }
 })
 
@@ -82,6 +87,7 @@ export const {
     setDateTrendActive,
     setAllData,
     setAllDataTwo,
+    setAllListFlight,
 } = bookingSlice.actions;
 
 export default bookingSlice.reducer;

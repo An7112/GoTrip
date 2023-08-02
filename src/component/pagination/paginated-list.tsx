@@ -6,7 +6,7 @@ import { Button, Drawer, Empty, Skeleton, Tabs, TabsProps, Tooltip } from 'antd'
 import { ListSegmentType } from 'modal/index';
 import { useDispatch, useSelector } from 'react-redux';
 import { setBooking, setOutPage, setSelectedItem } from 'store/reducers';
-import { convertCity, formatNgayThangNam2, formatNgayThangNam3, getAirlineFullName, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format';
+import { calculateTimeDifference, convertCity, formatDate, formatDayByDate, formatHoursMinutes, formatNgayThangNam2, formatNgayThangNam3, formatNgayThangNam4, formatTimeByDate, getAirlineFullName, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format';
 import { FaPlaneArrival, FaPlaneDeparture } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { PiWarningCircleThin } from 'react-icons/pi'
@@ -29,7 +29,8 @@ const PaginatedList = (props: IProps) => {
   const [visibleDropdowns, setVisibleDropdowns] = useState<any>({});
   const [sliceLoadMore, setSliceLoadMore] = useState([])
   const [open, setOpen] = useState(false)
-  const [refresh, setRefresh] = useState(0)
+  const [refresh, setRefresh] = useState(0);
+  // const [mapSelectedDetail, setMapSelectedDetail] = useState(null)
 
   const [openBooking, setOpenBooking] = useState(false)
   const [dataBooking, setDataBooking] = useState<any[]>([])
@@ -64,7 +65,7 @@ const PaginatedList = (props: IProps) => {
     }));
   };
 
- 
+
   const handleButtonClick = () => {
     const targetElement = document.getElementById('scroll');
     if (targetElement) {
@@ -176,6 +177,8 @@ const PaginatedList = (props: IProps) => {
     }
   }
 
+  console.log(pagedItems)
+
   const items: TabsProps['items'] = [
     {
       key: '1',
@@ -186,17 +189,17 @@ const PaginatedList = (props: IProps) => {
           <div className='tab-item-flex-col'>
             <div className='tab-item-row'>
               <span className='trip-type'>{pageRevert === 1 ? 'Chuyến đi' : 'Chuyến về'}</span>
-              <span className='text-15'>{getNumberOfStops(selectedItem)}</span>
+              <span className='text-15'>Nonstop</span>
             </div>
             <div className='tab-item-row'>
               <span className='gr-flex'>
-                {getAirlineLogo(selectedItem.AirlineOperating, '60px')}
-                {getAirlineFullName(selectedItem.AirlineOperating)}
+                {getAirlineLogo(selectedItem.airline, '60px')}
+                {getAirlineFullName(selectedItem.airline)}
               </span>
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
-                <span className='text-15'>Chuyến bay: <strong>{selectedItem.FlightNumber}</strong> </span>
-                <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.ListSegment[0].Plane}</strong> </span>
-                <span className='text-15'>Hạng ghế: <strong>{selectedItem.ListSegment[0].Cabin}</strong> </span>
+                <span className='text-15'>Chuyến bay: <strong>{selectedItem.listFlight[0].flightNumber}</strong> </span>
+                {/* <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.listSegment[0].Plane}</strong> </span> */}
+                <span className='text-15'>Hạng ghế: <strong>{selectedItem.listFlight[0].groupClass}</strong> </span>
               </span>
             </div>
             <div className='tab-item-row'>
@@ -214,26 +217,27 @@ const PaginatedList = (props: IProps) => {
               <div className='plane-trip-inf'>
                 <div className='trip-inf-row'>
                   <span className='gr-flex'>
-                    <span className='text-15'><strong>{selectedItem.StartTime}</strong> </span>
-                    <span className='text-15'>{formatNgayThangNam2(selectedItem.StartDate)}</span>
+                    <span className='text-15'><strong>{formatTimeByDate(selectedItem.listFlight[0].startDate)}</strong> </span>
+                    <span className='text-15'>{formatDayByDate(selectedItem.listFlight[0].startDate)}</span>
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
-                    <span className='text-15'>{convertCity(selectedItem.StartPoint)} ({selectedItem && selectedItem.StartPoint})</span>
+                    <span className='text-15'>{selectedItem.listFlight[0].startPointName} ({selectedItem && selectedItem.listFlight[0].startPoint})</span>
                     <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem, 'start')}</span>
                   </span>
                 </div>
                 <div className='trip-inf-row'>
                   <span className='gr-flex'>
-                    <span className='text-14' style={{ color: '#3554d1' }}>Thời gian bay {selectedItem.DurationFormat}</span>
+                    {/* <span className='text-14' style={{ color: '#3554d1' }}>Thời gian bay {selectedItem.DurationFormat}</span> */}
+                    <span className='text-14' style={{ color: '#3554d1' }}>Thời gian bay {calculateTimeDifference(selectedItem.listFlight[0].endDate, selectedItem.listFlight[0].startDate)}</span>
                   </span>
                 </div>
                 <div className='trip-inf-row'>
                   <span className='gr-flex'>
-                    <span className='text-15'><strong>{selectedItem.EndTime}</strong> </span>
-                    <span className='text-15'>{formatNgayThangNam2(selectedItem.EndDate)}</span>
+                    <span className='text-15'><strong>{formatTimeByDate(selectedItem.listFlight[0].endDate)}</strong> </span>
+                    <span className='text-15'>{formatDayByDate(selectedItem.listFlight[0].endDate)}</span>
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
-                    <span className='text-15'>{convertCity(selectedItem.EndPoint)} ({selectedItem && selectedItem.EndPoint})</span>
+                    <span className='text-15'>{selectedItem.listFlight[0].endPointName} ({selectedItem && selectedItem.listFlight[0].endPoint})</span>
                     <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem, 'end')}</span>
                   </span>
                 </div>
@@ -250,6 +254,7 @@ const PaginatedList = (props: IProps) => {
     },
   ];
 
+  console.log(dataBooking)
   const Bookingitems: TabsProps['items'] = dataBooking.map((element, index) => (
     {
       key: String(index),
@@ -262,7 +267,7 @@ const PaginatedList = (props: IProps) => {
             </h3>
             <div className='tab-item-row'>
               <span className='trip-type'>{element.FlightNumber}</span>
-              <span className='text-15'>{getNumberOfStops(element)}</span>
+              <span className='text-15'>Nonstop</span>
             </div>
             <div className='tab-item-row'>
               <span className='gr-flex'>
@@ -271,7 +276,7 @@ const PaginatedList = (props: IProps) => {
               </span>
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                 <span className='text-15'>Chuyến bay: <strong>{element.FlightNumber}</strong> </span>
-                <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(element)} {element.ListSegment[0]?.Plane}</strong> </span>
+                {/* <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(element)} {element.ListSegment[0]?.Plane}</strong> </span> */}
                 <span className='text-15'>Hạng ghế: <strong>{element.ListSegment[0].Cabin}</strong></span>
               </span>
             </div>
@@ -291,7 +296,7 @@ const PaginatedList = (props: IProps) => {
                 <div className='trip-inf-row'>
                   <span className='gr-flex'>
                     <span className='text-15'><strong>{element.StartTime}</strong> </span>
-                    <span className='text-15'>{formatNgayThangNam2(element.StartDate)}</span>
+                    <span className='text-15'>{formatNgayThangNam3(element.StartDate)}</span>
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{convertCity(element.StartPoint)} ({element.StartPoint})</span>
@@ -306,7 +311,7 @@ const PaginatedList = (props: IProps) => {
                 <div className='trip-inf-row'>
                   <span className='gr-flex'>
                     <span className='text-15'><strong>{element.EndTime}</strong> </span>
-                    <span className='text-15'>{formatNgayThangNam2(element.EndDate)}</span>
+                    <span className='text-15'>{formatNgayThangNam3(element.EndDate)}</span>
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{convertCity(element.EndPoint)} ({element.EndPoint})</span>
@@ -325,35 +330,27 @@ const PaginatedList = (props: IProps) => {
     return Math.ceil(number / 1000) * 1000;
   }
 
-  const newArray = dataBooking.map((cur) => ({
-    TotalFareAdt: formatNumberAs(cur.FareAdt * cur.Adt),
-    Adt: cur.Adt,
-    TotalFareChd: formatNumberAs(cur.FareChd * cur.Chd),
-    Chd: cur.Chd,
-    TotalFareInf: formatNumberAs(cur.FareInf * cur.Inf),
-    Inf: cur.Inf,
-    Currency: cur.Currency,
-  }));
-
-  const total = newArray.reduce((num, cur) =>
+  const total = dataBooking.reduce((num, cur) =>
     num +=
-    (cur.TotalFareAdt * cur.Adt + cur.TotalFareChd * cur.Chd + cur.TotalFareInf * cur.Inf)
+    (cur.TotalPriceAdt * cur.Adt + cur.TotalPriceChd * cur.Chd + cur.TotalPriceInf * cur.Inf)
     , 0)
 
-  const totalAdt = newArray.reduce((num, cur) =>
+  const totalAdt = dataBooking.reduce((num, cur) =>
     num +=
-    (cur.TotalFareAdt * cur.Adt)
+    (cur.TotalPriceAdt * cur.Adt)
     , 0)
 
-  const totalChd = newArray.reduce((num, cur) =>
+  const totalChd = dataBooking.reduce((num, cur) =>
     num +=
-    (cur.TotalFareChd * cur.Chd)
+    (cur.TotalPriceChd * cur.Chd)
     , 0)
 
-  const totalInf = newArray.reduce((num, cur) =>
+  const totalInf = dataBooking.reduce((num, cur) =>
     num +=
-    (cur.TotalFareInf * cur.Inf)
+    (cur.TotalPriceInf * cur.Inf)
     , 0)
+
+    console.log(dataBooking)
 
   return (
     <>
@@ -363,28 +360,35 @@ const PaginatedList = (props: IProps) => {
         closable={true}
         onClose={onClose}
         width={'fit-content'}
-        // width={window.innerWidth > 900 ? 800 : window.innerWidth - 100}
         open={open}
         footer={<div className='tab-footer'>
 
           <Tooltip color='white' placement="topLeft" title={
             <div className='tooltip-content'>
-              {selectedItem && selectedItem.Adt > 0
+              {selectedItem && selectedItem.adt > 0
                 && <div className='content-flex-row'>
-                  <span className='text-13'>Vé người lớn x {selectedItem && selectedItem.Adt}</span>
-                  <span className='text-13'>{selectedItem && formatNumber(selectedItem.TotalFareAdt)} {selectedItem && selectedItem.Currency}</span>
+                  <span className='text-13'>Vé người lớn x {selectedItem && selectedItem.adt}</span>
+                  <span className='text-13'>{selectedItem
+                    && formatNumber((
+                      selectedItem.fareAdt + selectedItem.feeAdt + selectedItem.taxAdt + selectedItem.serviceFeeAdt))}
+                    {selectedItem && selectedItem.currency}</span>
                 </div>
               }
-              {selectedItem && selectedItem.Chd > 0
+              {selectedItem && selectedItem.chd > 0
                 && <div className='content-flex-row'>
-                  <span className='text-13'>Vé trẻ em x {selectedItem && selectedItem.Chd}</span>
-                  <span className='text-13'>{selectedItem && formatNumber(selectedItem.TotalFareChd)} {selectedItem && selectedItem.Currency}</span>
+                  <span className='text-13'>Vé trẻ em x {selectedItem && selectedItem.chd}</span>
+                  <span className='text-13'>{selectedItem 
+                  && formatNumber((
+                    selectedItem.fareChd + selectedItem.feeChd + selectedItem.taxChd + selectedItem.serviceFeeChd))}
+                    {selectedItem && selectedItem.currency}</span>
                 </div>
               }
-              {selectedItem && selectedItem.Inf > 0
+              {selectedItem && selectedItem.inf > 0
                 && <div className='content-flex-row'>
-                  <span className='text-13'>Vé em bé x {selectedItem && selectedItem.Inf}</span>
-                  <span className='text-13'>{selectedItem && formatNumber(selectedItem.TotalFareInf)} {selectedItem && selectedItem.Currency}</span>
+                  <span className='text-13'>Vé em bé x {selectedItem && selectedItem.inf}</span>
+                  <span className='text-13'>{selectedItem 
+                  && formatNumber((selectedItem.fareInf + selectedItem.feeInf + selectedItem.taxInf + selectedItem.serviceFeeInf))} 
+                  {selectedItem && selectedItem.currency}</span>
                 </div>
               }
             </div>
@@ -400,40 +404,44 @@ const PaginatedList = (props: IProps) => {
               <span className='text-13' style={{ color: '#9b9b9b' }}>(Đã bao gồm Thuế và phí)</span>
             </span>
           </Tooltip>
-          <span className='text-15' style={{ fontWeight: '500' }}>{selectedItem && formatNumber(selectedItem.TotalPrice)} {selectedItem && selectedItem.Currency}</span>
+          <span className='text-15' style={{ fontWeight: '500' }}>{selectedItem && formatNumber(selectedItem.fullPrice)} {selectedItem && (selectedItem.currency ?? 'VNĐ')}</span>
           {selectedItem && tripType === true
             ? <button className={'view-deal'} onClick={() => addNewItem({
               key: pageRevert,
-              Id: selectedItem.Id,
-              Airline: selectedItem.Airline,
-              Adt: selectedItem.Adt,
-              Chd: selectedItem.Chd,
-              AirlineOperating: selectedItem.AirlineOperating,
-              Inf: selectedItem.Inf,
-              Currency: selectedItem.Currency,
-              EndDate: selectedItem.EndDate,
-              EndPoint: selectedItem.EndPoint,
-              EndTime: selectedItem.EndTime,
-              FlightNumber: selectedItem.FlightNumber,
-              ListSegment: selectedItem.ListSegment.map((item: ListSegmentType) => {
+              Id: selectedItem.bookingKey,
+              Airline: selectedItem.airline,
+              Adt: selectedItem.adt,
+              Chd: selectedItem.chd,
+              AirlineOperating: selectedItem.airline,
+              Inf: selectedItem.inf,
+              Currency: selectedItem.currency ?? 'VNĐ',
+              EndDate: formatDate(selectedItem.listFlight[0].endDate),
+              EndPoint: selectedItem.listFlight[0].endPoint,
+              DurationFormat: formatHoursMinutes(selectedItem.listFlight[0].duration),
+              TotalPriceAdt: selectedItem.fareAdt + selectedItem.feeAdt + selectedItem.taxAdt + selectedItem.serviceFeeAdt,
+              TotalPriceChd: selectedItem.fareChd + selectedItem.feeChd + selectedItem.taxChd + selectedItem.serviceFeeChd,
+              TotalPriceInf: selectedItem.fareInf + selectedItem.feeInf + selectedItem.taxInf + selectedItem.serviceFeeInf,
+              EndTime: formatTimeByDate(selectedItem.listFlight[0].endDate),
+              FlightNumber: selectedItem.listFlight[0].flightNumber,
+              ListSegment: selectedItem.listFlight[0].listSegment.map((item: any) => {
                 return {
-                  Airline: item.Airline,
-                  AllowanceBaggage: item.AllowanceBaggage,
-                  Cabin: item.Cabin,
-                  Class: item.Class,
-                  Plane: item.Plane,
-                  HandBaggage: item.HandBaggage
+                  Airline: item.airline,
+                  AllowanceBaggage: item.allowanceBaggage ?? 0,
+                  Cabin: selectedItem.listFlight[0].groupClass,
+                  Plane: item.plane,
+                  Class: item.class,
+                  HandBaggage: item.handBaggage
                 }
               }),
-              StartDate: selectedItem.StartDate,
-              StartPoint: selectedItem.StartPoint,
-              StartTime: selectedItem.StartTime,
-              FareAdt: selectedItem.FareAdt,
-              FareChd: selectedItem.FareChd,
-              FareInf: selectedItem.FareInf,
-              TotalFeeTaxAdt: selectedItem.TotalFeeTaxAdt,
-              TotalFeeTaxChd: selectedItem.TotalFeeTaxChd,
-              TotalFeeTaxInf: selectedItem.TotalFeeTaxInf,
+              StartDate: formatDate(selectedItem.listFlight[0].startDate),
+              StartPoint: selectedItem.listFlight[0].startPoint,
+              StartTime: formatTimeByDate(selectedItem.listFlight[0].startDate),
+              FareAdt: selectedItem.fareAdt,
+              FareChd: selectedItem.fareChd,
+              FareInf: selectedItem.fareInf,
+              TotalFeeTaxAdt: selectedItem.feeAdt,
+              TotalFeeTaxChd: selectedItem.feeChd,
+              TotalFeeTaxInf: selectedItem.feeInf,
             })}>
               Chọn
               <GoArrowUpRight />
@@ -441,36 +449,40 @@ const PaginatedList = (props: IProps) => {
             : <Link to={'/booking'}>
               <button className={'view-deal'} onClick={() => addNewItem({
                 key: pageRevert,
-                Id: selectedItem.Id,
-                Airline: selectedItem.Airline,
-                Adt: selectedItem.Adt,
-                Chd: selectedItem.Chd,
-                AirlineOperating: selectedItem.AirlineOperating,
-                Inf: selectedItem.Inf,
-                Currency: selectedItem.Currency,
-                EndDate: selectedItem.EndDate,
-                EndPoint: selectedItem.EndPoint,
-                EndTime: selectedItem.EndTime,
-                FlightNumber: selectedItem.FlightNumber,
-                ListSegment: selectedItem.ListSegment.map((item: ListSegmentType) => {
+                Id: selectedItem.bookingKey,
+                Airline: selectedItem.airline,
+                Adt: selectedItem.adt,
+                Chd: selectedItem.chd,
+                AirlineOperating: selectedItem.airline,
+                Inf: selectedItem.inf,
+                Currency: selectedItem.currency ?? 'VNĐ',
+                EndDate: formatDate(selectedItem.listFlight[0].endDate),
+                DurationFormat: formatHoursMinutes(selectedItem.listFlight[0].duration),
+                EndPoint: selectedItem.listFlight[0].endPoint,
+                TotalPriceAdt: selectedItem.fareAdt + selectedItem.feeAdt + selectedItem.taxAdt + selectedItem.serviceFeeAdt,
+                TotalPriceChd: selectedItem.fareChd + selectedItem.feeChd + selectedItem.taxChd + selectedItem.serviceFeeChd,
+                TotalPriceInf: selectedItem.fareInf + selectedItem.feeInf + selectedItem.taxInf + selectedItem.serviceFeeInf,
+                EndTime: formatTimeByDate(selectedItem.listFlight[0].endDate),
+                FlightNumber: selectedItem.listFlight[0].flightNumber,
+                ListSegment: selectedItem.listFlight[0].listSegment.map((item: any) => {
                   return {
-                    Airline: item.Airline,
-                    AllowanceBaggage: item.AllowanceBaggage,
-                    Cabin: item.Cabin,
-                    Class: item.Class,
-                    Plane: item.Plane,
-                    HandBaggage: item.HandBaggage
+                    Airline: item.airline,
+                    AllowanceBaggage: item.allowanceBaggage ?? 0,
+                    Cabin: selectedItem.listFlight[0].groupClass,
+                    Plane: item.plane,
+                    Class: item.class,
+                    HandBaggage: item.handBaggage
                   }
                 }),
-                StartDate: selectedItem.StartDate,
-                StartPoint: selectedItem.StartPoint,
-                StartTime: selectedItem.StartTime,
-                FareAdt: selectedItem.FareAdt,
-                FareChd: selectedItem.FareChd,
-                FareInf: selectedItem.FareInf,
-                TotalFeeTaxAdt: selectedItem.TotalFeeTaxAdt,
-                TotalFeeTaxChd: selectedItem.TotalFeeTaxChd,
-                TotalFeeTaxInf: selectedItem.TotalFeeTaxInf,
+                StartDate: formatDate(selectedItem.listFlight[0].startDate),
+                StartPoint: selectedItem.listFlight[0].startPoint,
+                StartTime: formatTimeByDate(selectedItem.listFlight[0].startDate),
+                FareAdt: selectedItem.fareAdt,
+                FareChd: selectedItem.fareChd,
+                FareInf: selectedItem.fareInf,
+                TotalFeeTaxAdt: selectedItem.feeAdt,
+                TotalFeeTaxChd: selectedItem.feeChd,
+                TotalFeeTaxInf: selectedItem.feeInf,
               })}>
                 Chọn
                 <GoArrowUpRight />
@@ -481,7 +493,7 @@ const PaginatedList = (props: IProps) => {
       >
         <div className='flex-col'>
           <h3 className='title-drawer'>
-            {selectedItem && convertCity(selectedItem.StartPoint)} ({selectedItem && selectedItem.StartPoint}) - {selectedItem && convertCity(selectedItem.EndPoint)} ({selectedItem && selectedItem.EndPoint})
+            {selectedItem && selectedItem.listFlight[0].startPointName} ({selectedItem && selectedItem.listFlight[0].startPoint}) - {selectedItem && selectedItem.listFlight[0].endPointName} ({selectedItem && selectedItem.listFlight[0].endPoint})
           </h3>
           <Tabs defaultActiveKey="1" items={items} />
         </div>
@@ -497,22 +509,22 @@ const PaginatedList = (props: IProps) => {
 
           <Tooltip color='white' placement="topLeft" title={
             <div className='tooltip-content'>
-              {newArray.length > 0 && newArray[0].Adt > 0
+              {dataBooking.length > 0 && dataBooking[0].Adt > 0
                 && <div className='content-flex-row'>
-                  <span className='text-13'>Vé người lớn x {newArray[0].Adt}</span>
-                  <span className='text-13'>{formatNumber(totalAdt)} {newArray[0].Currency}</span>
+                  <span className='text-13'>Vé người lớn x {dataBooking[0].Adt}</span>
+                  <span className='text-13'>{formatNumber(totalAdt)} {dataBooking[0].Currency}</span>
                 </div>
               }
-              {newArray.length > 0 && newArray[0].Chd > 0
+              {dataBooking.length > 0 && dataBooking[0].Chd > 0
                 && <div className='content-flex-row'>
-                  <span className='text-13'>Vé trẻ em x {newArray[0].Chd}</span>
-                  <span className='text-13'>{formatNumber(totalChd)} {newArray[0].Currency}</span>
+                  <span className='text-13'>Vé trẻ em x {dataBooking[0].Chd}</span>
+                  <span className='text-13'>{formatNumber(totalChd)} {dataBooking[0].Currency}</span>
                 </div>
               }
-              {newArray.length > 0 && newArray[0].Inf > 0
+              {dataBooking.length > 0 && dataBooking[0].Inf > 0
                 && <div className='content-flex-row'>
-                  <span className='text-13'>Vé em bé x {newArray[0].Inf}</span>
-                  <span className='text-13'>{formatNumber(totalInf)} {newArray[0].Currency}</span>
+                  <span className='text-13'>Vé em bé x {dataBooking[0].Inf}</span>
+                  <span className='text-13'>{formatNumber(totalInf)} {dataBooking[0].Currency}</span>
                 </div>
               }
             </div>
@@ -549,11 +561,11 @@ const PaginatedList = (props: IProps) => {
                   <div className='paginated-item items' key={`element_${index}`}>
                     <div className='frame-item-col'>
                       <div className='item-flex' onClick={() => handleDivClick(index)}>
-                        {getAirlineLogo(element.AirlineOperating, '60px')}
+                        {getAirlineLogo(element.airline, '60px')}
                         <div className='flex-center-item'>
                           <div className='item-col fix-content'>
-                            <h4 className="searchMenu__title text-truncate">{element.StartTime}</h4>
-                            <p className="filter-item text-truncate">{element.StartPoint}</p>
+                            <h4 className="searchMenu__title text-truncate">{formatTimeByDate(element.listFlight[0].startDate)}</h4>
+                            <p className="filter-item text-truncate">{element.listFlight[0].startPoint}</p>
                           </div>
                           <div className='item-col'>
                             <div className='frame-time-line'>
@@ -564,50 +576,54 @@ const PaginatedList = (props: IProps) => {
                             <p className='filter-item fix-content'>{getNumberOfStops(element)}</p>
                           </div>
                           <div className='item-col fix-content'>
-                            <h4 className="searchMenu__title text-truncate">{element.EndTime}</h4>
-                            <p className="filter-item text-truncate">{element.EndPoint}</p>
+                            <h4 className="searchMenu__title text-truncate">{formatTimeByDate(element.listFlight[0].endDate)}</h4>
+                            <p className="filter-item text-truncate">{element.listFlight[0].endPoint}</p>
                           </div>
                         </div>
-                        <p className="filter-item fix-content">{element.FlightNumber}</p>
+                        <p className="filter-item fix-content">{element.listFlight[0].flightNumber}</p>
                       </div>
                       <Button className='detail' style={{ maxWidth: 'fit-content' }} onClick={() => onOpen(element)}>Chi tiết</Button>
                     </div>
                     <div className='item-col-1'>
-                      <h3 className='text-18 text-truncate'>{formatNumber(element.FareAdtFull)} {element.Currency}</h3>
+                      <h3 className='text-18 text-truncate'>{formatNumber(element.fullPrice)} {element.Currency ?? 'VNĐ'}</h3>
                       {/* <p className="filter-item text-truncate">16 deals</p> */}
                       {tripType === true
                         ? <button className={'view-deal'} onClick={() => addNewItem({
                           key: pageRevert,
-                          Id: element.Id,
-                          Airline: element.Airline,
-                          Adt: element.Adt,
-                          Chd: element.Chd,
-                          AirlineOperating: element.AirlineOperating,
-                          Inf: element.Inf,
-                          Currency: element.Currency,
-                          EndDate: element.EndDate,
-                          EndPoint: element.EndPoint,
-                          EndTime: element.EndTime,
-                          FlightNumber: element.FlightNumber,
-                          ListSegment: element.ListSegment.map((item: ListSegmentType) => {
+                          Id: element.bookingKey,
+                          Airline: element.airline,
+                          Adt: element.adt,
+                          Chd: element.chd,
+                          AirlineOperating: element.airline,
+                          Inf: element.inf,
+                          Currency: element.currency ?? 'VNĐ',
+                          EndDate: formatDate(element.listFlight[0].endDate),
+                          DurationFormat: formatHoursMinutes(element.listFlight[0].duration),
+                          EndPoint: element.listFlight[0].endPoint,
+                          EndTime: formatTimeByDate(element.listFlight[0].endDate),
+                          TotalPriceAdt: element.fareAdt + element.feeAdt + element.taxAdt + element.serviceFeeAdt,
+                          TotalPriceChd: element.fareChd + element.feeChd + element.taxChd + element.serviceFeeChd,
+                          TotalPriceInf: element.fareInf + element.feeInf + element.taxInf + element.serviceFeeInf,
+                          FlightNumber: element.listFlight[0].flightNumber,
+                          ListSegment: element.listFlight[0].listSegment.map((item: any) => {
                             return {
-                              Airline: item.Airline,
-                              AllowanceBaggage: item.AllowanceBaggage,
-                              Cabin: item.Cabin,
-                              Plane: item.Plane,
-                              Class: item.Class,
-                              HandBaggage: item.HandBaggage
+                              Airline: item.airline,
+                              AllowanceBaggage: item.allowanceBaggage ?? 0,
+                              Cabin: element.listFlight[0].groupClass,
+                              Plane: item.plane,
+                              Class: item.class,
+                              HandBaggage: item.handBaggage
                             }
                           }),
-                          StartDate: element.StartDate,
-                          StartPoint: element.StartPoint,
-                          StartTime: element.StartTime,
-                          FareAdt: element.FareAdt,
-                          FareChd: element.FareChd,
-                          FareInf: element.FareInf,
-                          TotalFeeTaxAdt: element.TotalFeeTaxAdt,
-                          TotalFeeTaxChd: element.TotalFeeTaxChd,
-                          TotalFeeTaxInf: element.TotalFeeTaxInf,
+                          StartDate: formatDate(element.listFlight[0].startDate),
+                          StartPoint: element.listFlight[0].startPoint,
+                          StartTime: formatTimeByDate(element.listFlight[0].startDate),
+                          FareAdt: element.fareAdt,
+                          FareChd: element.fareChd,
+                          FareInf: element.fareInf,
+                          TotalFeeTaxAdt: element.feeAdt,
+                          TotalFeeTaxChd: element.feeChd,
+                          TotalFeeTaxInf: element.feeInf,
                         })}>
                           Chọn
                           <GoArrowUpRight />
@@ -615,36 +631,40 @@ const PaginatedList = (props: IProps) => {
                         : <Link to={'/booking'}>
                           <button className={'view-deal'} onClick={() => addNewItem({
                             key: pageRevert,
-                            Id: element.Id,
-                            Airline: element.Airline,
-                            Adt: element.Adt,
-                            Chd: element.Chd,
-                            AirlineOperating: element.AirlineOperating,
-                            Inf: element.Inf,
-                            Currency: element.Currency,
-                            EndDate: element.EndDate,
-                            EndPoint: element.EndPoint,
-                            EndTime: element.EndTime,
-                            FlightNumber: element.FlightNumber,
-                            ListSegment: element.ListSegment.map((item: ListSegmentType) => {
+                            Id: element.bookingKey,
+                            Airline: element.airline,
+                            Adt: element.adt,
+                            Chd: element.chd,
+                            AirlineOperating: element.airline,
+                            Inf: element.inf,
+                            Currency: element.currency ?? 'VNĐ',
+                            EndDate: formatDate(element.listFlight[0].endDate),
+                            EndPoint: element.listFlight[0].endPoint,
+                            DurationFormat: formatHoursMinutes(element.listFlight[0].duration),
+                            EndTime: formatTimeByDate(element.listFlight[0].endDate),
+                            TotalPriceAdt: element.fareAdt + element.feeAdt + element.taxAdt + element.serviceFeeAdt,
+                            TotalPriceChd: element.fareChd + element.feeChd + element.taxChd + element.serviceFeeChd,
+                            TotalPriceInf: element.fareInf + element.feeInf + element.taxInf + element.serviceFeeInf,
+                            FlightNumber: element.listFlight[0].flightNumber,
+                            ListSegment: element.listFlight[0].listSegment.map((item: any) => {
                               return {
-                                Airline: item.Airline,
-                                AllowanceBaggage: item.AllowanceBaggage,
-                                Cabin: item.Cabin,
-                                Plane: item.Plane,
-                                Class: item.Class,
-                                HandBaggage: item.HandBaggage
+                                Airline: item.airline,
+                                AllowanceBaggage: item.allowanceBaggage ?? 0,
+                                Cabin: element.listFlight[0].groupClass,
+                                Plane: item.plane,
+                                Class: item.class,
+                                HandBaggage: item.handBaggage
                               }
                             }),
-                            StartDate: element.StartDate,
-                            StartPoint: element.StartPoint,
-                            StartTime: element.StartTime,
-                            FareAdt: element.FareAdt,
-                            FareChd: element.FareChd,
-                            FareInf: element.FareInf,
-                            TotalFeeTaxAdt: element.TotalFeeTaxAdt,
-                            TotalFeeTaxChd: element.TotalFeeTaxChd,
-                            TotalFeeTaxInf: element.TotalFeeTaxInf,
+                            StartDate: formatDate(element.listFlight[0].startDate),
+                            StartPoint: element.listFlight[0].startPoint,
+                            StartTime: formatTimeByDate(element.listFlight[0].startDate),
+                            FareAdt: element.fareAdt,
+                            FareChd: element.fareChd,
+                            FareInf: element.fareInf,
+                            TotalFeeTaxAdt: element.feeAdt,
+                            TotalFeeTaxChd: element.feeChd,
+                            TotalFeeTaxInf: element.feeInf,
                           })}>
                             Chọn
                             <GoArrowUpRight />

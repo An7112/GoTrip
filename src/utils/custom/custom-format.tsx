@@ -1,6 +1,16 @@
-import dayjs from "dayjs";
 import { dataCountry } from "utils/data-country";
-dayjs.locale('vi')
+import KJUR from 'jsrsasign';
+import axios from "axios";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import "dayjs/locale/vi";
+
+dayjs.locale("vi");
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 
 export const getAirlineLogo = (abbr: string, style: string) => {
     switch (abbr) {
@@ -18,8 +28,35 @@ export const getAirlineLogo = (abbr: string, style: string) => {
             return <img style={{ width: style, height: style }} className='paginated-item-img' alt={abbr} />;
     }
 };
+
+export const formatDate = (dateTimeString: string): string => {
+    const formattedDate = dayjs(dateTimeString, { utc: true }).format("DDMMYYYY");
+    return formattedDate;
+};
+
+export const formatTimeByDate = (dateTimeString: string): string => {
+    const formattedTime = dayjs(dateTimeString, { utc: true }).format("HH:mm");
+    return formattedTime;
+};
+
+export const calculateTimeDifference = (endDate: string, startDate: string): string => {
+    const end = dayjs(endDate, { utc: true });
+    const start = dayjs(startDate, { utc: true });
+
+    const hours = end.diff(start, "hour");
+    const minutes = end.diff(start, "minute") - hours * 60;
+
+    return `${hours}h ${minutes}p`;
+};
+
+export const formatDayByDate = (dateTimeString: string): string => {
+    const vietnamTime = dayjs(dateTimeString, { utc: true });
+    const formattedDate = vietnamTime.format("dddd, DD/MM/YYYY");
+    return formattedDate;
+};
+
 export const getNumberOfStops = (item: any) => {
-    const numSegments = item.ListSegment.length;
+    const numSegments = item.listFlight[0].stopNum;
     if (numSegments > 1) {
         return `${numSegments - 1} Stops`;
     } else {
@@ -28,7 +65,7 @@ export const getNumberOfStops = (item: any) => {
 };
 
 export const formatNgayThangNam = (day: string) => {
-    const formattedDate = dayjs(day, 'DD-MM-YYYY')
+    const formattedDate = dayjs(day, 'DD-MM-YYYY',)
         .format('dddd, [ngày] DD [tháng] M [năm] YYYY')
         .replace(/\b\w/, (char) => char.toUpperCase());
     return formattedDate
@@ -68,6 +105,11 @@ export const formatNgayThangNam4 = (day: string) => {
     }
 }
 
+export const formatHoursMinutes = (value: number): string => {
+    const hours = Math.floor(value / 60);
+    const minutes = value % 60;
+    return `${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}p`;
+};
 
 export const convertCity = (code: string) => {
     const convert = dataCountry.find((element) => element.code === code)?.city ?? ''
@@ -96,4 +138,27 @@ export function formatNumber(number: number) {
     const formattedNumber = new Intl.NumberFormat('vi-VN').format(roundedNumber);
 
     return formattedNumber;
+}
+
+
+export function CryptHS512(agCode: string, serverTime: string) {
+    var oHeader = { 'alg': "HS512", "typ": "JWT" };
+    var sHeader = JSON.stringify(oHeader);
+    var tEnd = KJUR.jws.IntDate.get('now + 1day');
+    var oValue = { 'AgCode': agCode, "exp": tEnd, 'RequestDate': serverTime };
+    var sPayload = JSON.stringify(oValue);
+    var secretkey = 'VINAJET@' + agCode + '@2020';
+    var sJWS = KJUR.jws.JWS.sign("HS512", sHeader, sPayload, secretkey);
+    return sJWS;
+}
+
+export const getCode = async () => {
+    try {
+        const response = await axios.get('https://api.vinajet.vn/get-self-info');
+        const serverTime = response.data.time;
+        const authorizationCode = 'VNJ ' + CryptHS512('VINAJET145', serverTime) + ' VINAJET145';
+        return authorizationCode
+    } catch (error) {
+        return null
+    }
 }

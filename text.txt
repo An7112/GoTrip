@@ -21,8 +21,8 @@ import LoadingBar from 'component/loading-bar/loading-bar';
 import SliderDateTrend from './slider/slider-date-trend';
 import { useDispatch, useSelector } from 'react-redux';
 import MiniBooking from './mini-booking/mini-booking';
-import { setAllData, setAllDataTwo, setAllListFlight, setListGeoCodeOneTrip, setListGeoCodeTwoTrip } from 'store/reducers';
-import { formatDate, formatNgayThangNam3, formatTimeByDate, getAirlineFullName, getCode, getNumberOfStops } from 'utils/custom/custom-format';
+import { setAllData, setAllDataTwo, setListGeoCodeOneTrip, setListGeoCodeTwoTrip } from 'store/reducers';
+import { formatNgayThangNam3, getAirlineFullName } from 'utils/custom/custom-format';
 import SliderDateTrendReturn from './slider/slider-date-trend-return';
 dayjs.extend(customParseFormat);
 dayjs.extend(weekday);
@@ -103,7 +103,7 @@ function FilteredListPage() {
     const [selectedFlight, setSelectedFlight] = useState<FlightTime[]>([]);
     const [selectedFlightEnd, setSelectedFlightEnd] = useState<FlightTime[]>([]);
 
-    const apiUrl = "https://api.vinajet.vn/search-flight";
+    const apiUrl = "http://plugin.datacom.vn/flightsearch";
 
     const [timeLine, setTimeLine] = useState('01:00')
 
@@ -127,18 +127,11 @@ function FilteredListPage() {
 
 
     const flattenDomesticDatas = (response: any) => {
-        if (response.listFareData && Array.isArray(response.listFareData)) {
-            return response.listFareData;
+        if (response.DomesticDatas && Array.isArray(response.DomesticDatas)) {
+            return response.DomesticDatas;
         }
         return [];
     };
-    const flattenListFlight = (data: any) => {
-        if (data.listFlight && Array.isArray(data.listFlight)) {
-            return data.listFlight;
-        }
-        return [];
-    };
-    
     const flattenListGeoCodeDatas = (response: any) => {
         if (response.ListGeoCode && Array.isArray(response.ListGeoCode)) {
             return response.ListGeoCode;
@@ -162,83 +155,78 @@ function FilteredListPage() {
             const StartPoint = startPoint;
             const EndPoint = endPoint;
             const DepartDate = departDate;
-            const AuthorizationCode = await getCode()
+            const timestamp = Date.now();
+            const keyEncryct = encrypt(String(timestamp));
+            const keyEncryctWithParams =
+                keyEncryct.slice(0, 6) +
+                Adt +
+                keyEncryct.slice(6, 12) +
+                Chd +
+                keyEncryct.slice(12, 20) +
+                Inf +
+                keyEncryct.slice(20, 32);
+
             const fetchFlightData = async (airline: string) => {
                 const data = {
-                    AccCode: "VINAJET145",
-                    AgCode: "VINAJET145",
-                    UserLogin: "",
-                    IsTest: false,
+                    Key: keyEncryctWithParams,
+                    ProductKey: "c4bpzngvqzxh2lm",
                     Adt: Adt,
                     Chd: Chd,
                     Inf: Inf,
-                    IsCompo: false,
+                    ViewMode: false,
                     ListFlight: [
                         {
                             StartPoint: StartPoint,
                             EndPoint: EndPoint,
                             DepartDate: DepartDate,
-                            Airline: airline
-                        }
+                            Airline: airline,
+                        },
                     ],
-                    ViewMode: "",
-                    HeaderUser: "",
-                    HeaderPass: "",
-                    ProductKey: "",
-                    LanguageCode: "",
-                    AgentAccount: "",
-                    AgentPassword: "",
-                    Url: ""
-                }
-                return (await axios.post(apiUrl, data, {
-                    headers: {
-                        Authorization: AuthorizationCode,
-                    },
-                })).data;
+                };
+                return (await axios.post(apiUrl, data)).data;
             };
 
             const responses = await Promise.all(airlines.map(fetchFlightData));
             dispatch(setAllData(responses))
-            // dispatch(setListGeoCodeOneTrip(responses.flatMap((response) => flattenListGeoCodeDatas(response))))
+
+            dispatch(setListGeoCodeOneTrip(responses.flatMap((response) => flattenListGeoCodeDatas(response))))
 
             const allDomesticDatas = responses.flatMap((response) => flattenDomesticDatas(response));
 
             const minFaresByAirlines: MinFareByAirlines[] = [];
             const minFaresByCabin: MinFareByCabin[] = [];
-            const AllListFlight = allDomesticDatas.flatMap((element) => flattenListFlight(element));
-            dispatch(setAllListFlight(AllListFlight))
 
-            allDomesticDatas.forEach(({ fullPrice, listFlight }) => {
+            allDomesticDatas.forEach((flight: { FareAdtFull?: any; ListSegment?: any; }) => {
+                const { ListSegment } = flight;
 
-                listFlight.forEach((segment: { airline: any; }) => {
-                    const { airline } = segment;
-                    let airlineObj = minFaresByAirlines.find((item) => item.airline === airline);
+                ListSegment.forEach((segment: { Airline: any; }) => {
+                    const { Airline } = segment;
+                    let airlineObj = minFaresByAirlines.find((item) => item.airline === Airline);
                     if (!airlineObj) {
-                        airlineObj = { airline: airline, minFareAdtFull: fullPrice };
+                        airlineObj = { airline: Airline, minFareAdtFull: flight.FareAdtFull };
                         minFaresByAirlines.push(airlineObj);
                     } else {
-                        if (fullPrice < airlineObj.minFareAdtFull) {
-                            airlineObj.minFareAdtFull = fullPrice;
+                        if (flight.FareAdtFull < airlineObj.minFareAdtFull) {
+                            airlineObj.minFareAdtFull = flight.FareAdtFull;
                         }
                     }
                 });
-                listFlight.forEach((segment: { groupClass: any; }) => {
-                    const { groupClass } = segment;
-                    let cabinObj = minFaresByCabin.find((item) => item.cabin === groupClass);
+                ListSegment.forEach((segment: { Cabin: any; }) => {
+                    const { Cabin } = segment;
+                    let cabinObj = minFaresByCabin.find((item) => item.cabin === Cabin);
                     if (!cabinObj) {
-                        cabinObj = { cabin: groupClass, minFareAdtFull: fullPrice };
+                        cabinObj = { cabin: Cabin, minFareAdtFull: flight.FareAdtFull };
                         minFaresByCabin.push(cabinObj);
                     } else {
-                        if (fullPrice < cabinObj.minFareAdtFull) {
-                            cabinObj.minFareAdtFull = fullPrice;
+                        if (flight.FareAdtFull < cabinObj.minFareAdtFull) {
+                            cabinObj.minFareAdtFull = flight.FareAdtFull;
                         }
                     }
                 });
             });
             setMinFaresByAirlines(minFaresByAirlines)
             setMinFaresByCabin(minFaresByCabin)
-            // console.log('allDomesticDatas', allDomesticDatas)
-            const sortByFareAdtFullAscending = allDomesticDatas.sort((a: any, b: any) => a.fullPrice - b.fullPrice)
+            const sortByFareAdtFullAscending = allDomesticDatas.sort((a: any, b: any) => a.FareAdtFull - b.FareAdtFull)
             setPaginatedData(sortByFareAdtFullAscending)
             setFilteredData(sortByFareAdtFullAscending)
             setLoading(false)
@@ -266,73 +254,70 @@ function FilteredListPage() {
             const EndPoint = endPoint;
             // const DepartDate = departDate;
             const ReturnDate = returnDate ? returnDate : departDate;
-            const AuthorizationCode = await getCode()
+            const timestamp = Date.now();
+            const keyEncryct = encrypt(String(timestamp));
+            const keyEncryctWithParams =
+                keyEncryct.slice(0, 6) +
+                Adt +
+                keyEncryct.slice(6, 12) +
+                Chd +
+                keyEncryct.slice(12, 20) +
+                Inf +
+                keyEncryct.slice(20, 32);
+
             if (statusOpenTab2 === true) {
                 const fetchFlightData2 = async (airline: string) => {
                     const data = {
-                        AccCode: "VINAJET145",
-                        AgCode: "VINAJET145",
-                        UserLogin: "",
-                        IsTest: false,
+                        Key: keyEncryctWithParams,
+                        ProductKey: "c4bpzngvqzxh2lm",
                         Adt: Adt,
                         Chd: Chd,
                         Inf: Inf,
-                        IsCompo: false,
+                        ViewMode: false,
                         ListFlight: [
                             {
                                 StartPoint: EndPoint,
                                 EndPoint: StartPoint,
                                 DepartDate: ReturnDate,
-                                Airline: airline
-                            }
+                                Airline: airline,
+                            },
                         ],
-                        ViewMode: "",
-                        HeaderUser: "",
-                        HeaderPass: "",
-                        ProductKey: "",
-                        LanguageCode: "",
-                        AgentAccount: "",
-                        AgentPassword: "",
-                        Url: ""
-                    }
-                    return (await axios.post(apiUrl, data, {
-                        headers: {
-                            Authorization: AuthorizationCode,
-                        },
-                    })).data;
+                    };
+                    return (await axios.post(apiUrl, data)).data;
                 };
 
                 const responses2 = await Promise.all(airlines.map(fetchFlightData2));
-                // dispatch(setListGeoCodeTwoTrip(responses2.flatMap((response) => flattenListGeoCodeDatas(response))))
+                dispatch(setListGeoCodeTwoTrip(responses2.flatMap((response) => flattenListGeoCodeDatas(response))))
                 dispatch(setAllDataTwo(responses2))
                 const allDomesticDatas2 = responses2.flatMap((response) => flattenDomesticDatas(response));
 
                 const minFaresByAirlines2: MinFareByAirlines[] = [];
                 const minFaresByCabin2: MinFareByCabin[] = [];
 
-                allDomesticDatas2.forEach(({ fullPrice, listFlight }) => {
+                allDomesticDatas2.forEach((flight: { FareAdtFull?: any; ListSegment?: any; }) => {
+                    const { ListSegment } = flight;
 
-                    listFlight.forEach((segment: { airline: any; }) => {
-                        const { airline } = segment;
-                        let airlineObj = minFaresByAirlines2.find((item) => item.airline === airline);
+                    ListSegment.forEach((segment: { Airline: any; }) => {
+                        const { Airline } = segment;
+                        let airlineObj = minFaresByAirlines2.find((item) => item.airline === Airline);
                         if (!airlineObj) {
-                            airlineObj = { airline: airline, minFareAdtFull: fullPrice };
+                            airlineObj = { airline: Airline, minFareAdtFull: flight.FareAdtFull };
                             minFaresByAirlines2.push(airlineObj);
                         } else {
-                            if (fullPrice < airlineObj.minFareAdtFull) {
-                                airlineObj.minFareAdtFull = fullPrice;
+                            if (flight.FareAdtFull < airlineObj.minFareAdtFull) {
+                                airlineObj.minFareAdtFull = flight.FareAdtFull;
                             }
                         }
                     });
-                    listFlight.forEach((segment: { groupClass: any; }) => {
-                        const { groupClass } = segment;
-                        let cabinObj = minFaresByCabin2.find((item) => item.cabin === groupClass);
+                    ListSegment.forEach((segment: { Cabin: any; }) => {
+                        const { Cabin } = segment;
+                        let cabinObj = minFaresByCabin2.find((item) => item.cabin === Cabin);
                         if (!cabinObj) {
-                            cabinObj = { cabin: groupClass, minFareAdtFull: fullPrice };
+                            cabinObj = { cabin: Cabin, minFareAdtFull: flight.FareAdtFull };
                             minFaresByCabin2.push(cabinObj);
                         } else {
-                            if (fullPrice < cabinObj.minFareAdtFull) {
-                                cabinObj.minFareAdtFull = fullPrice;
+                            if (flight.FareAdtFull < cabinObj.minFareAdtFull) {
+                                cabinObj.minFareAdtFull = flight.FareAdtFull;
                             }
                         }
                     });
@@ -355,16 +340,16 @@ function FilteredListPage() {
     const handleSort = () => {
         if (pageRevert === 2) {
             const sortedData = [...filteredData2].sort((a, b) => {
-                if (a.fullPrice < b.fullPrice) return ascending ? 1 : -1;
-                if (a.fullPrice > b.fullPrice) return ascending ? -1 : 1;
+                if (a.TotalPrice < b.TotalPrice) return ascending ? 1 : -1;
+                if (a.TotalPrice > b.TotalPrice) return ascending ? -1 : 1;
                 return 0;
             });
             setFilteredData2(sortedData);
             setAscending((prevAscending) => !prevAscending);
         } else {
             const sortedData = [...filteredData].sort((a, b) => {
-                if (a.fullPrice < b.fullPrice) return ascending ? 1 : -1;
-                if (a.fullPrice > b.fullPrice) return ascending ? -1 : 1;
+                if (a.FareAdtFull < b.FareAdtFull) return ascending ? 1 : -1;
+                if (a.FareAdtFull > b.FareAdtFull) return ascending ? -1 : 1;
                 return 0;
             });
             setFilteredData(sortedData);
@@ -401,6 +386,15 @@ function FilteredListPage() {
 
     const handleFilterChange = (filterKey: string, checkedValues: string[] | boolean) => {
         setFilters((prevFilters) => ({ ...prevFilters, [filterKey]: checkedValues }));
+    };
+
+    const getNumberOfStops = (item: any) => {
+        const numSegments = item.ListSegment.length;
+        if (numSegments > 1) {
+            return `${numSegments - 1} Stops`;
+        } else {
+            return 'Nonstop';
+        }
     };
 
     useEffect(() => {
@@ -481,42 +475,28 @@ function FilteredListPage() {
     useEffect(() => {
         const { startTime: minStartTime, endTime: maxEndTime } = getMinMaxTimes(selectedFlight);
         const { startTime: minStartTimeEnd, endTime: maxEndTimeEnd } = getMinMaxTimes(selectedFlightEnd);
-        // console.log('minStartTime', minStartTime, formatTimeByDate("2023-08-02T22:25:00Z"))
+
         if (tripType) {
             const filteredData = paginatedData.filter((item) => {
-                const isAirlineMatch = filters.airline.length === 0 || item.listFlight.some((segment: any) => filters.airline.includes(segment.airline));
+                const isAirlineMatch = filters.airline.length === 0 || item.ListSegment.some((segment: any) => filters.airline.includes(segment.Airline));
                 const isCabinMatch =
-                    filters.cabin.length === 0 || item.listFlight.some((segment: any) => filters.cabin.includes(segment.groupClass));
-                const isItemStartTimeMatch = !filters.timeLine || item.listFlight.some((segment: any) => formatDate(segment.startDate) >= formatDate(filters.timeLine));
+                    filters.cabin.length === 0 || item.ListSegment.some((segment: any) => filters.cabin.includes(segment.Cabin));
+                const isHandBaggageMatch =
+                    filters.handBaggage.length === 0 || item.ListSegment.some((segment: any) => filters.handBaggage.includes(segment.HandBaggage));
+                const isPromoMatch = !filters.promo || item.Promo;
+                const isItemStartTimeMatch = !filters.timeLine || item.StartTime >= filters.timeLine;
                 const isStopsMatch = filters.stops.length === 0 || filters.stops.includes(getNumberOfStops(item));
 
-                const isStartTimeMatch = selectedFlight.length === 0
-                    || (
-                        minStartTime !== null
-                        && item.listFlight.some((element: any) =>
-                            formatTime(formatTimeByDate(element.startDate)) >= minStartTime
-                        ));
+                const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
+                const isEndTimeMatch = selectedFlight.length === 0 || (maxEndTime !== null && formatTime(item.StartTime) <= maxEndTime);
 
-                const isEndTimeMatch = selectedFlight.length === 0 || (
-                    maxEndTime !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.startDate)) <= maxEndTime
-                    ));
-
-                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (
-                    minStartTimeEnd !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.endDate)) >= minStartTimeEnd
-                    ));
-
-                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (
-                    maxEndTimeEnd !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.endDate)) <= maxEndTimeEnd
-                    ));;
+                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
+                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
 
                 return isAirlineMatch
                     && isCabinMatch
+                    && isHandBaggageMatch
+                    && isPromoMatch
                     && isItemStartTimeMatch
                     && isStopsMatch
                     && isStartTimeMatch
@@ -527,39 +507,25 @@ function FilteredListPage() {
             });
 
             const filteredData2 = paginatedData2.filter((item) => {
-                const isAirlineMatch = filters.airline.length === 0 || item.listFlight.some((segment: any) => filters.airline.includes(segment.airline));
+                const isAirlineMatch = filters.airline.length === 0 || item.ListSegment.some((segment: any) => filters.airline.includes(segment.Airline));
                 const isCabinMatch =
-                    filters.cabin.length === 0 || item.listFlight.some((segment: any) => filters.cabin.includes(segment.groupClass));
-                const isItemStartTimeMatch = !filters.timeLine || item.listFlight.some((segment: any) => formatDate(segment.startDate) >= formatDate(filters.timeLine));
+                    filters.cabin.length === 0 || item.ListSegment.some((segment: any) => filters.cabin.includes(segment.Cabin));
+                const isHandBaggageMatch =
+                    filters.handBaggage.length === 0 || item.ListSegment.some((segment: any) => filters.handBaggage.includes(segment.HandBaggage));
+                const isPromoMatch = !filters.promo || item.Promo;
+                const isItemStartTimeMatch = !filters.timeLine || item.StartTime >= filters.timeLine;
                 const isStopsMatch = filters.stops.length === 0 || filters.stops.includes(getNumberOfStops(item));
 
-                const isStartTimeMatch = selectedFlight.length === 0
-                    || (
-                        minStartTime !== null
-                        && item.listFlight.some((element: any) =>
-                            formatTime(formatTimeByDate(element.startDate)) >= minStartTime
-                        ));
+                const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
+                const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
 
-                const isEndTimeMatch = selectedFlight.length === 0 || (
-                    maxEndTime !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.startDate)) <= maxEndTime
-                    ));
-
-                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (
-                    minStartTimeEnd !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.endDate)) >= minStartTimeEnd
-                    ));
-
-                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (
-                    maxEndTimeEnd !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.endDate)) <= maxEndTimeEnd
-                    ));;
+                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
+                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
 
                 return isAirlineMatch
                     && isCabinMatch
+                    && isHandBaggageMatch
+                    && isPromoMatch
                     && isItemStartTimeMatch
                     && isStopsMatch
                     && isStartTimeMatch
@@ -573,39 +539,25 @@ function FilteredListPage() {
             setFilteredData(filteredData)
         } else {
             const filteredData = paginatedData.filter((item) => {
-                const isAirlineMatch = filters.airline.length === 0 || item.listFlight.some((segment: any) => filters.airline.includes(segment.airline));
+                const isAirlineMatch = filters.airline.length === 0 || item.ListSegment.some((segment: any) => filters.airline.includes(segment.Airline));;
                 const isCabinMatch =
-                    filters.cabin.length === 0 || item.listFlight.some((segment: any) => filters.cabin.includes(segment.groupClass));
-                const isItemStartTimeMatch = !filters.timeLine || item.listFlight.some((segment: any) => formatDate(segment.startDate) >= formatDate(filters.timeLine));
+                    filters.cabin.length === 0 || item.ListSegment.some((segment: any) => filters.cabin.includes(segment.Cabin));
+                const isHandBaggageMatch =
+                    filters.handBaggage.length === 0 || item.ListSegment.some((segment: any) => filters.handBaggage.includes(segment.HandBaggage));
+                const isPromoMatch = !filters.promo || item.Promo;
+                const isItemStartTimeMatch = !filters.timeLine || item.StartTime >= filters.timeLine;
                 const isStopsMatch = filters.stops.length === 0 || filters.stops.includes(getNumberOfStops(item));
 
-                const isStartTimeMatch = selectedFlight.length === 0
-                    || (
-                        minStartTime !== null
-                        && item.listFlight.some((element: any) =>
-                            formatTime(formatTimeByDate(element.startDate)) >= minStartTime
-                        ));
+                const isStartTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) >= minStartTime);
+                const isEndTimeMatch = selectedFlight.length === 0 || (minStartTime !== null && formatTime(item.StartTime) <= maxEndTime);
 
-                const isEndTimeMatch = selectedFlight.length === 0 || (
-                    maxEndTime !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.startDate)) <= maxEndTime
-                    ));
-
-                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (
-                    minStartTimeEnd !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.endDate)) >= minStartTimeEnd
-                    ));
-
-                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (
-                    maxEndTimeEnd !== null
-                    && item.listFlight.some((element: any) =>
-                        formatTime(formatTimeByDate(element.endDate)) <= maxEndTimeEnd
-                    ));;
+                const isStartTimeMatchEnd = selectedFlightEnd.length === 0 || (minStartTimeEnd !== null && formatTime(item.EndTime) >= minStartTimeEnd);
+                const isEndTimeMatchEnd = selectedFlightEnd.length === 0 || (maxEndTimeEnd !== null && formatTime(item.EndTime) <= maxEndTimeEnd);
 
                 return isAirlineMatch
                     && isCabinMatch
+                    && isHandBaggageMatch
+                    && isPromoMatch
                     && isItemStartTimeMatch
                     && isStopsMatch
                     && isStartTimeMatch

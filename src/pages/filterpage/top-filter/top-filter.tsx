@@ -6,7 +6,6 @@ import { Option } from 'antd/es/mentions';
 import 'slick-carousel/slick/slick-theme.css';
 import { Button, DatePicker, Drawer, Empty, Form, Input, Modal } from 'antd';
 import dayjs from 'dayjs';
-import 'dayjs/locale/vi';
 import { CiLocationOn } from 'react-icons/ci'
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -16,7 +15,6 @@ import { setTripType } from 'store/reducers';
 import { convertCity } from 'utils/custom/custom-format';
 import { AiOutlineEdit } from 'react-icons/ai'
 dayjs.extend(customParseFormat);
-dayjs.locale('vi');
 interface TravellersType {
     adults: number,
     children: number,
