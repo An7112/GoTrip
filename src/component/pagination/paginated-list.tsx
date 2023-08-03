@@ -208,7 +208,7 @@ const PaginatedList = (props: IProps) => {
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                 <span className='text-15'>Chuyến bay: <strong>{selectedItem.listFlight[0].flightNumber}</strong> </span>
                 {/* <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(selectedItem)} {selectedItem.listSegment[0].Plane}</strong> </span> */}
-                <span className='text-15'>Hạng ghế: <strong>{selectedItem.listFlight[0].groupClass}</strong> </span>
+                <span className='text-15'>Hạng ghế: <strong>{selectedItem.listFlight[0].fareClass}</strong> </span>
               </span>
             </div>
             <div className='tab-item-row'>
@@ -311,7 +311,7 @@ const PaginatedList = (props: IProps) => {
               <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                 <span className='text-15'>Chuyến bay: <strong>{element.FlightNumber}</strong> </span>
                 {/* <span className='text-15'>Loại máy bay: <strong>{getTypePlaneMap(element)} {element.ListSegment[0]?.Plane}</strong> </span> */}
-                <span className='text-15'>Hạng ghế: <strong>{element.ListSegment[0].Cabin}</strong></span>
+                <span className='text-15'>Hạng ghế: <strong>{element.ListSegment[0].FareClass}</strong></span>
               </span>
             </div>
             <div className='tab-item-row'>
@@ -456,6 +456,7 @@ const PaginatedList = (props: IProps) => {
                   Airline: item.airline,
                   AllowanceBaggage: item.allowanceBaggage ?? 0,
                   Cabin: selectedItem.listFlight[0].groupClass,
+                  FareClass: selectedItem.listFlight[0].fareClass,
                   Plane: item.plane,
                   stopNum: selectedItem.listFlight[0].stopNum,
                   Class: item.class,
@@ -498,6 +499,7 @@ const PaginatedList = (props: IProps) => {
                     Airline: item.airline,
                     AllowanceBaggage: item.allowanceBaggage ?? 0,
                     Cabin: selectedItem.listFlight[0].groupClass,
+                    FareClass: selectedItem.listFlight[0].fareClass,
                     Plane: item.plane,
                     Class: item.class,
                     stopNum: selectedItem.listFlight[0].stopNum,
@@ -641,6 +643,7 @@ const PaginatedList = (props: IProps) => {
                               Airline: item.airline,
                               AllowanceBaggage: item.allowanceBaggage ?? 0,
                               Cabin: element.listFlight[0].groupClass,
+                              FareClass: element.listFlight[0].fareClass,
                               Plane: item.plane,
                               Class: item.class,
                               stopNum: element.listFlight[0].stopNum,
@@ -684,6 +687,7 @@ const PaginatedList = (props: IProps) => {
                                 AllowanceBaggage: item.allowanceBaggage ?? 0,
                                 Cabin: element.listFlight[0].groupClass,
                                 Plane: item.plane,
+                                FareClass: element.listFlight[0].fareClass,
                                 stopNum: element.listFlight[0].stopNum,
                                 Class: item.class,
                                 HandBaggage: item.handBaggage
