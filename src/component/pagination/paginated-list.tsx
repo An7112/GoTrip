@@ -6,10 +6,12 @@ import { Button, Drawer, Empty, Skeleton, Tabs, TabsProps, Tooltip } from 'antd'
 import { ListSegmentType } from 'modal/index';
 import { useDispatch, useSelector } from 'react-redux';
 import { setBooking, setOutPage, setSelectedItem } from 'store/reducers';
-import { calculateTimeDifference, convertCity, formatDate, formatDayByDate, formatHoursMinutes, formatNgayThangNam2, formatNgayThangNam3, formatNgayThangNam4, formatTimeByDate, getAirlineFullName, getAirlineLogo, getNumberOfStops, getNumberOfStops2 } from 'utils/custom/custom-format';
+import { calculateTimeDifference, convertCity, formatDate, formatDayByDate, formatHoursMinutes, formatNgayThangNam2, formatNgayThangNam3, formatNgayThangNam4, formatTimeByDate, getAirlineFullName, getAirlineLogo, getCode, getNumberOfStops, getNumberOfStops2 } from 'utils/custom/custom-format';
 import { FaPlaneArrival, FaPlaneDeparture } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { PiWarningCircleThin } from 'react-icons/pi'
+import axios from 'axios';
+import { airportName } from 'utils/airport/airport';
 
 interface IProps {
   paginatedData: any[],
@@ -30,8 +32,9 @@ const PaginatedList = (props: IProps) => {
   const [sliceLoadMore, setSliceLoadMore] = useState([])
   const [open, setOpen] = useState(false)
   const [refresh, setRefresh] = useState(0);
-  // const [mapSelectedDetail, setMapSelectedDetail] = useState(null)
-
+  const [activeTabDetail, setActiveTabDetail] = useState('1')
+  const [conditions, setConditions] = useState<Array<any> | null>(null)
+  const [isLoadingCdt, setIsLoadingCdt] = useState(true)
   const [openBooking, setOpenBooking] = useState(false)
   const [dataBooking, setDataBooking] = useState<any[]>([])
 
@@ -127,13 +130,13 @@ const PaginatedList = (props: IProps) => {
 
   const onOpen = (item: any) => {
     setOpen(true)
+    setActiveTabDetail('1')
     dispatch(setSelectedItem(item))
   }
 
   const onCloseBooking = () => {
     setOpenBooking(false);
   };
-
 
   useEffect(() => {
     const existingTripType = tripType
@@ -147,35 +150,41 @@ const PaginatedList = (props: IProps) => {
     setSliceLoadMore(newData)
   }, [itemsPerPage, paginatedData])
 
-  const flattenListAircraft = (response: any) => {
-    if (response.ListAircraft && Array.isArray(response.ListAircraft)) {
-      return response.ListAircraft;
-    }
-    return [];
-  };
-
-  const flatData = [...allData, ...allDataTwo].flatMap((response: any) => flattenListAircraft(response)) ?? []
-
-  const uniqueSet = new Set(flatData.map((item: any) => JSON.stringify(item)));
-  const uniqueArray = Array.from(uniqueSet).map((item: any) => JSON.parse(item));
-
-  const getTypePlaneMap = (item: any) => {
-    const typePlane = item && uniqueArray.length > 0
-      ? uniqueArray.find((element: any) => element.IATA === item.ListSegment[0].Plane)?.Manufacturer
-      : '';
-    return typePlane
+  const onChangeActiveDetail = (value: string) => {
+    setActiveTabDetail(value)
   }
 
-
-  const getAirPortName = (item: any, key: string) => {
-    if (key === 'start') {
-      const airportNameStart = listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === item.StartPoint).AirportName
-      return airportNameStart
-    } else {
-      const airportNameEnd = listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === item.EndPoint).AirportName
-      return airportNameEnd
+  const getAirPortName = (key: string) => {
+    if (key) {
+      const airport = airportName.find((element) => element.code === key)?.name
+      console.log(airport)
+      return airport
     }
   }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const AuthorizationCode = await getCode()
+      setIsLoadingCdt(true)
+      try {
+        const headers = {
+          Authorization: AuthorizationCode,
+        };
+
+        const response = await axios.get(`https://api.vinajet.vn/get-price-term?airline=${selectedItem.airline}&groupClass=${selectedItem.listFlight[0].groupClass}&fareClass=${selectedItem.listFlight[0].fareClass}&AgCode=VINAJET145`, {
+          headers: headers
+        });
+        setConditions(response.data.bookingRules ?? [])
+        setIsLoadingCdt(false)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setIsLoadingCdt(false)
+      }
+    }
+    fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTabDetail === '2'])
 
   console.log(pagedItems)
 
@@ -222,7 +231,7 @@ const PaginatedList = (props: IProps) => {
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{selectedItem.listFlight[0].startPointName} ({selectedItem && selectedItem.listFlight[0].startPoint})</span>
-                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem, 'start')}</span>
+                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem.listFlight[0].startPoint)}</span>
                   </span>
                 </div>
                 <div className='trip-inf-row'>
@@ -238,7 +247,7 @@ const PaginatedList = (props: IProps) => {
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{selectedItem.listFlight[0].endPointName} ({selectedItem && selectedItem.listFlight[0].endPoint})</span>
-                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem, 'end')}</span>
+                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(selectedItem.listFlight[0].endPoint)}</span>
                   </span>
                 </div>
               </div>
@@ -250,11 +259,36 @@ const PaginatedList = (props: IProps) => {
     {
       key: '2',
       label: `Hành lý & điều kiện vé`,
-      children: `Điều kiện`,
+      children: <>
+        {selectedItem && Array.isArray(conditions) && conditions.length > 0
+          &&
+          <div className='tab-item-flex-col'>
+            <div className='tab-item-row'>
+              <span className='trip-type'>{pageRevert === 1 ? 'Điều kiện chuyến đi' : 'Điều kiện chuyến về'}</span>
+            </div>
+            {isLoadingCdt
+              ? <Skeleton paragraph={{ rows: 4 }} active />
+              : conditions.length > 0
+                ? conditions.map((element) => {
+                  return (
+                    <div className='tab-item-row'>
+                      <div className='item-condition'>
+                        <h3 className='title-condition'>{element.title}</h3>
+                        <p>{element.content}</p>
+                      </div>
+                    </div>
+                  )
+                })
+                : <Empty description={'Không tìm thấy thông tin.'} />
+            }
+          </div>
+        }
+      </>,
     },
   ];
 
-  console.log(dataBooking)
+  console.log(dataBooking, selectedItem)
+
   const Bookingitems: TabsProps['items'] = dataBooking.map((element, index) => (
     {
       key: String(index),
@@ -300,7 +334,7 @@ const PaginatedList = (props: IProps) => {
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{convertCity(element.StartPoint)} ({element.StartPoint})</span>
-                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(element, 'start')}</span>
+                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(element.StartPoint)}</span>
                   </span>
                 </div>
                 <div className='trip-inf-row'>
@@ -315,7 +349,7 @@ const PaginatedList = (props: IProps) => {
                   </span>
                   <span className='gr-flex' style={{ alignItems: 'flex-end' }}>
                     <span className='text-15'>{convertCity(element.EndPoint)} ({element.EndPoint})</span>
-                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(element, 'end')}</span>
+                    <span className='text-14' style={{ color: '#9b9b9b' }}>{getAirPortName(element.EndPoint)}</span>
                   </span>
                 </div>
               </div>
@@ -325,10 +359,6 @@ const PaginatedList = (props: IProps) => {
       ),
     }
   ));
-
-  function formatNumberAs(number: number) {
-    return Math.ceil(number / 1000) * 1000;
-  }
 
   const total = dataBooking.reduce((num, cur) =>
     num +=
@@ -349,8 +379,6 @@ const PaginatedList = (props: IProps) => {
     num +=
     (cur.TotalPriceInf * cur.Inf)
     , 0)
-
-    console.log(selectedItem)
 
   return (
     <>
@@ -377,18 +405,18 @@ const PaginatedList = (props: IProps) => {
               {selectedItem && selectedItem.chd > 0
                 && <div className='content-flex-row'>
                   <span className='text-13'>Vé trẻ em x {selectedItem && selectedItem.chd}</span>
-                  <span className='text-13'>{selectedItem 
-                  && formatNumber((
-                    selectedItem.fareChd + selectedItem.feeChd + selectedItem.taxChd + selectedItem.serviceFeeChd))}
+                  <span className='text-13'>{selectedItem
+                    && formatNumber((
+                      selectedItem.fareChd + selectedItem.feeChd + selectedItem.taxChd + selectedItem.serviceFeeChd))}
                     {selectedItem && selectedItem.currency}</span>
                 </div>
               }
               {selectedItem && selectedItem.inf > 0
                 && <div className='content-flex-row'>
                   <span className='text-13'>Vé em bé x {selectedItem && selectedItem.inf}</span>
-                  <span className='text-13'>{selectedItem 
-                  && formatNumber((selectedItem.fareInf + selectedItem.feeInf + selectedItem.taxInf + selectedItem.serviceFeeInf))} 
-                  {selectedItem && selectedItem.currency}</span>
+                  <span className='text-13'>{selectedItem
+                    && formatNumber((selectedItem.fareInf + selectedItem.feeInf + selectedItem.taxInf + selectedItem.serviceFeeInf))}
+                    {selectedItem && selectedItem.currency}</span>
                 </div>
               }
             </div>
@@ -497,7 +525,7 @@ const PaginatedList = (props: IProps) => {
           <h3 className='title-drawer'>
             {selectedItem && selectedItem.listFlight[0].startPointName} ({selectedItem && selectedItem.listFlight[0].startPoint}) - {selectedItem && selectedItem.listFlight[0].endPointName} ({selectedItem && selectedItem.listFlight[0].endPoint})
           </h3>
-          <Tabs defaultActiveKey="1" items={items} />
+          <Tabs defaultActiveKey="1" activeKey={activeTabDetail} items={items} onChange={(value) => onChangeActiveDetail(value)} />
         </div>
       </Drawer>
       <Drawer
@@ -561,6 +589,7 @@ const PaginatedList = (props: IProps) => {
                 // const isActive = bookingInf.some((ele) => String(ele.Id) === String(element.Id))
                 return (
                   <div className='paginated-item items' key={`element_${index}`}>
+                    {element.promo === true && <label className="fast500 top-company__label">Khuyến mãi</label>}
                     <div className='frame-item-col'>
                       <div className='item-flex' onClick={() => handleDivClick(index)}>
                         {getAirlineLogo(element.airline, '60px')}
@@ -587,7 +616,7 @@ const PaginatedList = (props: IProps) => {
                       <Button className='detail' style={{ maxWidth: 'fit-content' }} onClick={() => onOpen(element)}>Chi tiết</Button>
                     </div>
                     <div className='item-col-1'>
-                      <h3 className='text-18 text-truncate'>{formatNumber(element.fullPrice)} {element.Currency ?? 'VNĐ'}</h3>
+                      <h3 className='text-18 text-truncate'>{formatNumber((element.fareAdt + element.taxAdt + element.feeAdt) * element.adt + element.serviceFeeAdt)} {element.Currency ?? 'VNĐ'}</h3>
                       {/* <p className="filter-item text-truncate">16 deals</p> */}
                       {tripType === true
                         ? <button className={'view-deal'} onClick={() => addNewItem({

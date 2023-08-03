@@ -96,10 +96,9 @@ function FilteredListPage() {
     const [minFaresByAirlines2, setMinFaresByAirlines2] = useState<MinFareByAirlines[]>([]);
     const [minFaresByCabin2, setMinFaresByCabin2] = useState<MinFareByCabin[]>([]);
     const [statusOpenTab2, setStatusOpenTab2] = useState(false);
-    const [progress, setProgress] = useState(0);
+    const [progress, setProgress] = useState(1);
     const maxProgress = 96;
-    const loadingRef = useRef(false);
-    const intervalRef = useRef<number>();
+    const intervalDuration = 20;
     const [selectedFlight, setSelectedFlight] = useState<FlightTime[]>([]);
     const [selectedFlightEnd, setSelectedFlightEnd] = useState<FlightTime[]>([]);
 
@@ -138,21 +137,13 @@ function FilteredListPage() {
         }
         return [];
     };
-    
-    const flattenListGeoCodeDatas = (response: any) => {
-        if (response.ListGeoCode && Array.isArray(response.ListGeoCode)) {
-            return response.ListGeoCode;
-        }
-        return [];
-    };
+
 
     const fetchData = async () => {
         const convert = dataCountry.find((element) => element.code === endPoint)?.city ?? ''
         const convertReturn = dataCountry.find((element) => element.code === startPoint)?.city ?? ''
         setFlyingTo(convert)
         setFlyingToReturn(convertReturn)
-        loadingRef.current = true;
-        setProgress(0);
         try {
             setLoading(true)
             const airlines = ["VJ", "VN", "VU", "QH"];
@@ -247,7 +238,7 @@ function FilteredListPage() {
             console.error('Error fetching data:', error);
         } finally {
             setLoading(false)
-            loadingRef.current = false;
+            setProgress(100);
         }
     };
 
@@ -373,18 +364,15 @@ function FilteredListPage() {
     };
 
     useEffect(() => {
-        intervalRef.current = window.setInterval(() => {
-            setProgress((prevProgress) => Math.min(prevProgress + 1, maxProgress));
-        }, 20);
+        const interval = setInterval(() => {
+            setProgress(prevProgress => Math.min(prevProgress + 1, maxProgress));
+        }, intervalDuration);
 
-        return () => clearInterval(intervalRef.current);
-    }, [maxProgress]);
-
-    useEffect(() => {
-        if (!loadingRef.current && progress < maxProgress) {
-            clearInterval(intervalRef.current);
-            setProgress(100);
+        if (progress >= maxProgress) {
+            clearInterval(interval);
         }
+
+        return () => clearInterval(interval);
     }, [progress, maxProgress]);
 
 
