@@ -183,12 +183,14 @@ function Booking() {
 
                 const shouldRetry = bookingFn.data.listFareData.every((item: any) => {
                     if (item.airline === "VJ") {
-                        const startDate = dayjs(item.listFlight[0].startDate);
-                        const hoursDifference = startDate.diff(currentTime, 'hour');
-                        if (hoursDifference < 24) {
-                            return false;
-                        } else {
-                            return item.bookingCode == null;
+                        if(Array.isArray(item.listFlight) && item.listFlight.length > 0){
+                            const startDate = dayjs(item.listFlight[0].startDate);
+                            const hoursDifference = startDate.diff(currentTime, 'hour');
+                            if (hoursDifference < 24) {
+                                return false;
+                            } else {
+                                return item.bookingCode == null;
+                            }
                         }
                     } else {
                         return item.bookingCode == null;
@@ -230,9 +232,9 @@ function Booking() {
         setErrorMessages(errors);
         if (
             Object.keys(errors).length === 0
-            && (dataBooking[0].adt > 0 ? checkField(formDataInf, ["content", "fullname"]) : true)
-            && (dataBooking[0].chd > 0 ? checkField(formDataInfChid, ["contentChid", "fullnameChid", "date"]) : true)
-            && (dataBooking[0].inf > 0 ? checkField(formDataInfBaby, ["contentBaby", "fullnameBaby", "dateBaby"]) : true)
+            && ((dataBooking.length > 0 && dataBooking[0].adt > 0) ? checkField(formDataInf, ["content", "fullname"]) : true)
+            && ((dataBooking.length > 0 && dataBooking[0].chd > 0) ? checkField(formDataInfChid, ["contentChid", "fullnameChid", "date"]) : true)
+            && ((dataBooking.length > 0 && dataBooking[0].inf > 0) ? checkField(formDataInfBaby, ["contentBaby", "fullnameBaby", "dateBaby"]) : true)
         ) {
             // console.log('goi')
             setBookingLoading(true)
@@ -800,14 +802,14 @@ function Booking() {
                                             </p>
                                         </div>
                                         <div className='booking-logo-col' style={{ width: '100%' }}>
-                                            <span className='text-15' style={{ textAlign: 'right' }}><strong>{element.listFlight[0].flightNumber}</strong> </span>
-                                            <span className='text-15' style={{ textAlign: 'right' }}><strong>{element.listFlight[0].fareClass}</strong></span>
+                                            <span className='text-15' style={{ textAlign: 'right' }}><strong>{(Array.isArray(element.listFlight) && element.listFlight.length > 0) && element.listFlight[0].flightNumber}</strong> </span>
+                                            <span className='text-15' style={{ textAlign: 'right' }}><strong>{(Array.isArray(element.listFlight) && element.listFlight.length > 0) && element.listFlight[0].fareClass}</strong></span>
                                         </div>
                                     </div>
                                     <div className='flex-center-item booking'>
                                         <div className='item-col fix-content'>
-                                            <h4 className="searchMenu__title text-truncate">{formatTimeByDate(element.listFlight[0].startDate)}</h4>
-                                            <p className="filter-item text-truncate">{convertCity(element.listFlight[0].startPoint)} ({element.listFlight[0].startPoint})</p>
+                                            <h4 className="searchMenu__title text-truncate">{(Array.isArray(element.listFlight) && element.listFlight.length > 0) && formatTimeByDate(element.listFlight[0].startDate)}</h4>
+                                            <p className="filter-item text-truncate">{(Array.isArray(element.listFlight) && element.listFlight.length > 0) && convertCity(element.listFlight[0].startPoint)} ({element.listFlight[0].startPoint})</p>
                                         </div>
                                         <div className='item-col'>
                                             <div className='frame-time-line'>
@@ -818,8 +820,8 @@ function Booking() {
                                             <p className='filter-item fix-content'>{getNumberOfStops2(element)}</p>
                                         </div>
                                         <div className='item-col fix-content'>
-                                            <h4 className="searchMenu__title text-truncate">{formatTimeByDate(element.listFlight[0].endDate)}</h4>
-                                            <p className="filter-item text-truncate">{convertCity(element.listFlight[0].endPoint)} ({element.listFlight[0].endPoint})</p>
+                                            <h4 className="searchMenu__title text-truncate">{(Array.isArray(element.listFlight) && element.listFlight.length > 0) && formatTimeByDate(element.listFlight[0].endDate)}</h4>
+                                            <p className="filter-item text-truncate">{(Array.isArray(element.listFlight) && element.listFlight.length > 0) && convertCity(element.listFlight[0].endPoint)} ({element.listFlight[0].endPoint})</p>
                                         </div>
                                     </div>
                                     <div className='frame-price'>
@@ -847,7 +849,7 @@ function Booking() {
                             <div className='frame-price'>
                                 <div className='price-item'>
                                     <p className='title'>Tổng cộng</p>
-                                    <p className='title'>{formatNumber(total)} {dataBooking[0]?.currency ?? 'VND'}</p>
+                                    <p className='title'>{formatNumber(total)} {dataBooking.length > 0 && (dataBooking[0]?.currency ?? 'VND')}</p>
                                 </div>
                             </div>
                         </div>
