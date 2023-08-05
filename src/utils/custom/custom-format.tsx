@@ -12,22 +12,42 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
-export const getAirlineLogo = (abbr: string, style: string) => {
+export const getAirlineLogo = (abbr: string, style: string, fill?: string) => {
     switch (abbr) {
         case 'VJ':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/VJ.svg' alt='vj' />;
+            return <img style={{ width: style }} className='paginated-item-img' src='media/logo/VJ.svg' alt='vj' />;
         case 'VN':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/VN.svg' alt='vn' />;
+            return <img style={{ width: style }} className='paginated-item-img' src='media/logo/VN.svg' alt='vn' />;
         case 'QH':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/QH.svg' alt='qh' />;
+            return <img style={{ width: style }} className='paginated-item-img' src='media/logo/QH.svg' alt='qh' />;
         case 'VU':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/vietravel.png' alt='vu' />;
+            return <img style={{ width: style }} className='paginated-item-img' src='media/logo/vietravel.png' alt='vu' />;
         case 'BL':
-            return <img style={{ width: style, height: style }} className='paginated-item-img' src='media/logo/BL.svg' alt='bl' />;
+            return <img style={{ width: style }} className='paginated-item-img' src='media/logo/BL.svg' alt='bl' />;
         default:
-            return <img style={{ width: style, height: style }} className='paginated-item-img' alt={abbr} />;
+            return <img style={{ width: style }} className='paginated-item-img' alt={abbr} />;
     }
 };
+
+export const getAirlinePlane = (plane: string) => {
+    const convert = plane.slice(0, 1)
+    switch (convert) {
+        case '3':
+            return 'Airbus'
+        case '7':
+            return 'Boeing'
+        default:
+            return '';
+    }
+};
+
+
+export const getCiTy = (code: string) => {
+    const findName = dataCountry.find((element) => element.code === code)?.city
+    if (findName) {
+        return findName
+    }
+}
 
 export const formatDate = (dateTimeString: string): string => {
     const formattedDate = dayjs(dateTimeString, { utc: true }).format("DDMMYYYY");
@@ -55,6 +75,13 @@ export const formatDayByDate = (dateTimeString: string): string => {
     return formattedDate;
 };
 
+export const formatDayByDateNoT = (dateTimeString: string): string => {
+    const vietnamTime = dayjs(dateTimeString, { utc: true });
+    const formattedDate = vietnamTime.format("DD/MM/YYYY");
+    return formattedDate;
+};
+
+
 export const getNumberOfStops = (item: any) => {
     const numSegments = item.listFlight[0].stopNum;
     if (numSegments > 1) {
@@ -65,7 +92,7 @@ export const getNumberOfStops = (item: any) => {
 };
 
 export const getNumberOfStops2 = (item: any) => {
-    const numSegments = item.ListSegment[0].stopNum;
+    const numSegments = item.listFlight[0].stopNum;
     if (numSegments > 1) {
         return `${numSegments - 1} Stops`;
     } else {
@@ -124,6 +151,12 @@ export const convertCity = (code: string) => {
     const convert = dataCountry.find((element) => element.code === code)?.city ?? ''
     return convert
 }
+
+export const convertDateFormat = (dateString: string): string => {
+    const formattedDate = dayjs(dateString).format("DDMMYYYY");
+    return formattedDate;
+};
+
 
 export const getAirlineFullName = (abbr: string) => {
     switch (abbr) {

@@ -197,7 +197,7 @@ function TopFilter() {
         { date: '25072023', value: '25$' },
         { date: '26072023', value: '25$' },
     ];
-    const defaultPrice = '0';
+    const defaultPrice = null;
     const dateRenderStart = (current: any) => {
         const dateString = dayjs(current).format('DDMMYYYY');
         const customDate = customDates.find((item) => item.date === dateString);
@@ -417,7 +417,7 @@ function TopFilter() {
                                             <div className='list-action'>
                                                 <button className='action' onClick={() => {
                                                     if (travellers.adults <= 1) {
-                                                        setTravellers(prev => ({ ...prev, adults: + 1 }));
+                                                        setTravellers(prev => ({ ...prev, adults: 1 }));
                                                     } else {
                                                         setTravellers(prev => ({ ...prev, adults: prev.adults - 1 }));
                                                     }
@@ -662,7 +662,7 @@ function TopFilter() {
                                             }}>
                                                 -
                                             </button>
-                                            <span>{adults}</span>
+                                            <span>{travellers.adults}</span>
                                             <button className='action' onClick={() => setTravellers(prev => ({ ...prev, adults: prev.adults + 1 }))}>
                                                 +
                                             </button>

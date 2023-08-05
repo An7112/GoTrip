@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { TbLayoutGridRemove } from 'react-icons/tb'
 import { useDispatch, useSelector } from 'react-redux'
 import { setBooking } from 'store/reducers'
-import { formatNgayThangNam2, formatNgayThangNam4, getAirlineLogo } from 'utils/custom/custom-format'
+import { formatNgayThangNam2, formatNgayThangNam4, formatTimeByDate, getAirlineLogo, getNumberOfStops } from 'utils/custom/custom-format'
 import { dataCountry } from 'utils/data-country'
 
 function MiniBooking() {
@@ -52,15 +52,6 @@ function MiniBooking() {
         }
     }
 
-    const getNumberOfStops = (item: any) => {
-        const numSegments = item.ListSegment[0].stopNum;
-        if (numSegments > 1) {
-            return `${numSegments - 1} Stops`;
-        } else {
-            return 'Nonstop';
-        }
-    };
-
     return (
         <div className='list-of-trips'>
             {chuyenDi.length > 0
@@ -72,17 +63,17 @@ function MiniBooking() {
                                 Chuyến đi
                             </h3>
                         </div>
-                        <p className='trip-dsc'>{formatLocationName(chuyenDi[0].StartPoint)} ({chuyenDi[0].StartPoint}) - {formatLocationName(chuyenDi[0].EndPoint)} ({chuyenDi[0].EndPoint})</p>
-                        <p className='trip-dsc date'>{formatNgayThangNam4(chuyenDi[0].StartDate)}</p>
+                        <p className='trip-dsc'>{formatLocationName(chuyenDi[0].listFlight[0].startPoint)} ({chuyenDi[0].listFlight[0].startPoint}) - {formatLocationName(chuyenDi[0].listFlight[0].endPoint)} ({chuyenDi[0].listFlight[0].endPoint})</p>
+                        <p className='trip-dsc date'>{formatNgayThangNam4(chuyenDi[0].listFlight[0].startDate)}</p>
                         <p className='trip-dsc convert-trip' onClick={doiChuyenDi}>Đổi chuyến <TbLayoutGridRemove /></p>
                     </div>
                     <div className='frame-item-col'>
                         <div className='item-flex'>
-                            {getAirlineLogo(chuyenDi[0].AirlineOperating, '60px')}
+                            {getAirlineLogo(chuyenDi[0].airline, '60px')}
                             <div className='flex-center-item'>
                                 <div className='item-col fix-content'>
-                                    <h4 className="searchMenu__title text-truncate">{chuyenDi[0].StartTime}</h4>
-                                    <p className="filter-item text-truncate">{chuyenDi[0].StartPoint}</p>
+                                    <h4 className="searchMenu__title text-truncate">{formatTimeByDate(chuyenDi[0].listFlight[0].startDate)}</h4>
+                                    <p className="filter-item text-truncate">{chuyenDi[0].listFlight[0].startPoint}</p>
                                 </div>
                                 <div className='item-col'>
                                     <div className='frame-time-line'>
@@ -93,11 +84,11 @@ function MiniBooking() {
                                     <p className='filter-item fix-content'>{getNumberOfStops(chuyenDi[0])}</p>
                                 </div>
                                 <div className='item-col fix-content'>
-                                    <h4 className="searchMenu__title text-truncate">{chuyenDi[0].EndTime}</h4>
-                                    <p className="filter-item text-truncate">{chuyenDi[0].EndPoint}</p>
+                                    <h4 className="searchMenu__title text-truncate">{chuyenDi[0].listFlight[0].endTime}</h4>
+                                    <p className="filter-item text-truncate">{chuyenDi[0].listFlight[0].endPoint}</p>
                                 </div>
                             </div>
-                            <p className="filter-item fix-content">{chuyenDi[0].FlightNumber}</p>
+                            <p className="filter-item fix-content">{chuyenDi[0].listFlight[0].flightNumber}</p>
                         </div>
                     </div>
                 </div>
@@ -111,17 +102,17 @@ function MiniBooking() {
                                 Chuyến về
                             </h3>
                         </div>
-                        <p className='trip-dsc'>{formatLocationName(chuyenVe[0].StartPoint)} ({chuyenVe[0].StartPoint}) - {formatLocationName(chuyenVe[0].EndPoint)} ({chuyenVe[0].EndPoint})</p>
-                        <p className='trip-dsc date'>{formatNgayThangNam4(chuyenVe[0].StartDate)}</p>
+                        <p className='trip-dsc'>{formatLocationName(chuyenVe[0].listFlight[0].startPoint)} ({chuyenVe[0].listFlight[0].startPoint}) - {formatLocationName(chuyenVe[0].listFlight[0].endPoint)} ({chuyenVe[0].listFlight[0].endPoint})</p>
+                        <p className='trip-dsc date'>{formatNgayThangNam4(chuyenVe[0].listFlight[0].startDate)}</p>
                         <p className='trip-dsc convert-trip' onClick={doiChuyenVe}>Đổi chuyến <TbLayoutGridRemove /></p>
                     </div>
                     <div className='frame-item-col'>
                         <div className='item-flex'>
-                            {getAirlineLogo(chuyenVe[0].AirlineOperating, '60px')}
+                        {getAirlineLogo(chuyenVe[0].airline, '60px')}
                             <div className='flex-center-item'>
                                 <div className='item-col fix-content'>
-                                    <h4 className="searchMenu__title text-truncate">{chuyenVe[0].StartTime}</h4>
-                                    <p className="filter-item text-truncate">{chuyenVe[0].StartPoint}</p>
+                                <h4 className="searchMenu__title text-truncate">{formatTimeByDate(chuyenVe[0].listFlight[0].startDate)}</h4>
+                                    <p className="filter-item text-truncate">{chuyenVe[0].listFlight[0].startPoint}</p>
                                 </div>
                                 <div className='item-col'>
                                     <div className='frame-time-line'>
@@ -132,11 +123,11 @@ function MiniBooking() {
                                     <p className='filter-item fix-content'>{getNumberOfStops(chuyenVe[0])}</p>
                                 </div>
                                 <div className='item-col fix-content'>
-                                    <h4 className="searchMenu__title text-truncate">{chuyenVe[0].EndTime}</h4>
-                                    <p className="filter-item text-truncate">{chuyenVe[0].EndPoint}</p>
+                                <h4 className="searchMenu__title text-truncate">{chuyenVe[0].listFlight[0].endTime}</h4>
+                                    <p className="filter-item text-truncate">{chuyenVe[0].listFlight[0].endPoint}</p>
                                 </div>
                             </div>
-                            <p className="filter-item fix-content">{chuyenVe[0].FlightNumber}</p>
+                            <p className="filter-item fix-content">{chuyenVe[0].listFlight[0].flightNumber}</p>
                         </div>
                     </div>
                 </div>

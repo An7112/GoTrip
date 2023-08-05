@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import SectionPopular from './section-popular/section-popular';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { dataCountry, mapOption } from 'utils/data-country';
+import axios from 'axios';
 const { Option } = Select;
 
 dayjs.extend(customParseFormat);
@@ -112,7 +113,7 @@ function Home() {
         if (defaultValueStr) {
             try {
                 const defaultValue = JSON.parse(defaultValueStr);
-                console.log(defaultValue.departDate)
+                // console.log(defaultValue.departDate)
                 setOnchangeValueDepart(defaultValue.startPoint);
                 setOnchangeValueToReturn(defaultValue.endPoint);
                 setAdults(Number(defaultValue.adults));
@@ -172,7 +173,7 @@ function Home() {
         { date: '26072023', value: '25$' },
     ];
 
-    const defaultPrice = '0';
+    const defaultPrice = null;
     const dateRenderStart = (current: any) => {
         const dateString = dayjs(current).format('DDMMYYYY');
         const customDate = customDates.find((item) => item.date === dateString);
@@ -256,6 +257,7 @@ function Home() {
                 <div data-anim-child="fade" className='frame-poster'>
                     <img src="media/masthead/1/img_bg_home.jpg" alt="image" className="poster-img" />
                 </div>
+
                 <div className='container-poster'>
                     <div className='row justify-center'>
                         <div className='col-auto'>

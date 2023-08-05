@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import './booking.css'
 import { BiSolidPlaneAlt } from 'react-icons/bi'
-import { Button, DatePicker, Form, Input, Select, Checkbox } from 'antd'
+import { Button, DatePicker, Form, Input, Select, Checkbox, Spin } from 'antd'
 import { Row, Col } from 'antd';
 import dayjs from 'dayjs';
 
 import { BookingType } from 'modal/index';
-import { convertCity, formatNgayThangNam3, getAirlineFullName, getAirlineLogo, getNumberOfStops2 } from 'utils/custom/custom-format';
+import { convertCity, convertDateFormat, formatNgayThangNam3, formatTimeByDate, getAirlineFullName, getAirlineLogo, getCode, getNumberOfStops2 } from 'utils/custom/custom-format';
 import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 interface FormData {
     lastname?: string;
@@ -24,23 +26,38 @@ const { Option } = Select;
 
 function Booking() {
 
-    const { listGeoCodeOneTrip, allData, allDataTwo } = useSelector((state: any) => state)
-
     const countryCodes = ['+84', '+1', '+44', '+86', '+81'];
     const content = ['Ông', 'Bà'];
     const contentChid = ['Trẻ em trai', 'Trẻ em gái'];
     const contentBaby = ['Bé trai', 'Bé gái'];
 
+    const history = useNavigate();
+    const [ipAddress, setIpAddress] = useState<string | null>(null);
+
     const [formData, setFormData] = useState<FormData>({})
-    const [formDataInf, setFormDataInf] = useState([{ content: 'Ông', fullname: '', luggage: 1 }]);
-    const [formDataInfChid, setFormDataInfChid] = useState([{ contentChid: 'Trẻ em trai', fullnameChid: '', date: '' }]);
-    const [formDataInfBaby, setFormDataInfBaby] = useState([{ contentBaby: 'Bé trai', fullnameBaby: '', dateBaby: '' }]);
+    const [formDataInf, setFormDataInf] = useState([{ content: 'Ông', fullname: null, luggage: null, luggage2: null }]);
+    const [formDataInfChid, setFormDataInfChid] = useState([{ contentChid: 'Trẻ em trai', fullnameChid: null, date: '' }]);
+    const [formDataInfBaby, setFormDataInfBaby] = useState([{ contentBaby: 'Bé trai', fullnameBaby: null, dateBaby: '' }]);
     const [errors, setErrors] = useState<string[]>([]);
     const [errorsBaby, setErrorsBaby] = useState<string[]>([]);
-    const [dataBooking, setDataBooking] = useState<BookingType[]>([])
+    const [dataBooking, setDataBooking] = useState<any[]>([])
     const [bill, setBill] = useState(false)
-
+    const [onewayBaggage, setOnewayBaggage] = useState([])
+    const [returnBaggage, setReturnBaggage] = useState([])
+    const [bookingLoading, setBookingLoading] = useState(false)
     const [errorMessages, setErrorMessages] = useState<FormData>({});
+
+    const [tranId, setTranId] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState<number>(0);
+    const maxRetries = 4;
+
+    useEffect(() => {
+        fetch('https://api64.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => setIpAddress(data.ip))
+            .catch(error => console.error('Error fetching IP:', error));
+    }, []);
+
 
     useEffect(() => {
         const isArrayLocal = localStorage.getItem('bookingInf')
@@ -57,19 +74,20 @@ function Booking() {
 
     useEffect(() => {
         if (dataBooking.length > 0) {
-            const newFormDataInf = Array.from({ length: dataBooking[0].Adt }, () => ({
+            const newFormDataInf = Array.from({ length: dataBooking[0].adt }, () => ({
                 content: 'Ông',
-                fullname: '',
-                luggage: 1
+                fullname: null,
+                luggage: null,
+                luggage2: null,
             }));
-            const newFormDataInfChid = Array.from({ length: dataBooking[0].Chd }, () => ({
+            const newFormDataInfChid = Array.from({ length: dataBooking[0].chd }, () => ({
                 contentChid: 'Trẻ em trai',
-                fullnameChid: '',
+                fullnameChid: null,
                 date: ''
             }));
-            const newFormDataInfBayby = Array.from({ length: dataBooking[0].Inf }, () => ({
+            const newFormDataInfBayby = Array.from({ length: dataBooking[0].inf }, () => ({
                 contentBaby: 'Bé trai',
-                fullnameBaby: '',
+                fullnameBaby: null,
                 dateBaby: ''
             }));
             setFormDataInfBaby(newFormDataInfBayby)
@@ -134,14 +152,75 @@ function Booking() {
         }
     };
 
-    const handleSubmit = () => {
+    function checkField(arr: any[], fields: any[]) {
+        for (let i = 0; i < arr.length; i++) {
+            let isValid = true;
+            for (const field of fields) {
+                if (arr[i][field] === '' || arr[i][field] == null) {
+                    isValid = false;
+                    break; // Không cần kiểm tra các trường khác nữa
+                }
+            }
+            if (isValid) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    useEffect(() => {
+
+        const retryPostReview = async () => {
+            try {
+                const AuthorizationCode = await getCode();
+                const bookingFn = await axios.post(`https://api.vinajet.vn/review-booking?tranId=${tranId}`, { tranId: tranId }, {
+                    headers: {
+                        Authorization: AuthorizationCode,
+                    }
+                });
+
+                const currentTime = dayjs();
+
+                const shouldRetry = bookingFn.data.listFareData.every((item: any) => {
+                    if (item.airline === "VJ") {
+                        const startDate = dayjs(item.listFlight[0].startDate);
+                        const hoursDifference = startDate.diff(currentTime, 'hour');
+                        if (hoursDifference < 24) {
+                            return false;
+                        } else {
+                            return item.bookingCode == null;
+                        }
+                    } else {
+                        return item.bookingCode == null;
+                    }
+                });
+
+                if (shouldRetry && retryCount < maxRetries) {
+                    setRetryCount(retryCount + 1);
+                }
+
+                if (!shouldRetry || retryCount >= maxRetries - 1) {
+                    setBookingLoading(false);
+                    localStorage.setItem('bookingFn', JSON.stringify(bookingFn.data))
+                    history(`/thanks-you`);
+                }
+            } catch (error) {
+                console.log(error);
+                if (retryCount < maxRetries) {
+                    setRetryCount(retryCount + 1);
+                }
+            }
+        };
+
+        if (tranId && retryCount < maxRetries) {
+            const timer = setTimeout(retryPostReview, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [tranId, retryCount]);
+
+
+    const handleSubmitInf = async () => {
         const errors: FormData = {};
-        if (!formData.lastname) {
-            errors.lastname = 'Vui lòng nhập họ của bạn';
-        }
-        if (!formData.firstname) {
-            errors.firstname = 'Vui lòng nhập tên của bạn';
-        }
         if (!formData.phone) {
             errors.phone = 'Vui lòng nhập số điện thoại của bạn';
         }
@@ -149,14 +228,139 @@ function Booking() {
             errors.email = 'Vui lòng nhập email';
         }
         setErrorMessages(errors);
-        if (Object.keys(errors).length === 0) {
-            // console.log(formData);
-        }
-    };
+        if (
+            Object.keys(errors).length === 0
+            && (dataBooking[0].adt > 0 ? checkField(formDataInf, ["content", "fullname"]) : true)
+            && (dataBooking[0].chd > 0 ? checkField(formDataInfChid, ["contentChid", "fullnameChid", "date"]) : true)
+            && (dataBooking[0].inf > 0 ? checkField(formDataInfBaby, ["contentBaby", "fullnameBaby", "dateBaby"]) : true)
+        ) {
+            // console.log('goi')
+            setBookingLoading(true)
+            const AuthorizationCode = await getCode();
+            const formattedDate = dayjs().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+            const userAgent = navigator.userAgent;
 
-    const handleSubmitInf = () => {
-        handleSubmit()
-        // console.log([...formDataInf, ...formDataInfChid, ...formDataInfBaby]);
+            const newData = dataBooking.map((item) => {
+                const newItem = { ...item };
+                delete newItem.key;
+                return newItem;
+            });
+
+            const listPassengerAdt = formDataInf.map((element, index) => {
+                const baggage = onewayBaggage.filter((ele: any) => ele.code === element.luggage)
+                const baggage2 = returnBaggage.filter((ele: any) => ele.code === element.luggage2)
+                const flatBaggage = [...baggage, ...baggage2]
+                return (
+                    {
+                        address: "",
+                        birthday: "06082021",
+                        firstName: element.fullname,
+                        gender: true,
+                        id: index,
+                        index: index,
+                        lastName: "",
+
+                        listBaggage: flatBaggage,
+                        passportExpiryDate: "04082028",
+                        passportNumber: "",
+                        persionType: 1,
+                        title: "",
+                        type: "ADT"
+                    }
+                )
+            })
+            const listPassengerChd = formDataInfChid.map((element, index) => {
+                return (
+                    {
+                        address: "",
+                        birthday: convertDateFormat(element.date),
+                        firstName: element.fullnameChid,
+                        gender: true,
+                        id: index + formDataInf.length,
+                        index: index + formDataInf.length,
+                        lastName: "",
+
+                        listBaggage: [],
+                        passportExpiryDate: "04082028",
+                        passportNumber: "",
+                        persionType: 2,
+                        title: "",
+                        type: "CHD"
+                    }
+                )
+            })
+            const listPassengerInf = formDataInfBaby.map((element, index) => {
+                return (
+                    {
+                        address: "",
+                        birthday: convertDateFormat(element.dateBaby),
+                        firstName: element.fullnameBaby,
+                        gender: true,
+                        id: index + formDataInf.length + formDataInfChid.length,
+                        index: index + formDataInf.length + formDataInfChid.length,
+                        lastName: "",
+
+                        listBaggage: [],
+                        passportExpiryDate: "04082028",
+                        passportNumber: "",
+                        persionType: 3,
+                        title: element.contentBaby,
+                        type: "INF"
+                    }
+                )
+            })
+
+            const flatListPassenger = [...listPassengerAdt, ...listPassengerChd, ...listPassengerInf]
+            const postBooking = {
+                accCode: "VINAJET145",
+                agCode: "VINAJET145",
+                bookType: "",
+                campaignId: "",
+                contact: {
+                    address: "",
+                    agentEmail: "",
+                    agentName: "",
+                    agentPhone: "",
+                    createDate: formattedDate,
+                    email: "booking.herewego@gmail.com",
+                    firstName: "",
+                    gender: true,
+                    ipAddress: "",
+                    lastName: "",
+                    note: "",
+                    phone: formData.phone
+                },
+                deviceId: "WEB",
+                deviceName: userAgent,
+                domain: "",
+                excelRange: "",
+                ipAddress: ipAddress,
+                isCombo: false,
+                listFareData: newData,
+                listPassenger: flatListPassenger,
+                note: "Liên hệ qua PHONE",
+                oneway: dataBooking.length > 1 ? false : true,
+                remark: "",
+                type: 0,
+                useAgentContact: true,
+                vat: true,
+            }
+            try {
+                const headers = {
+                    Authorization: AuthorizationCode,
+                };
+                const resBooking = await axios.post("https://api.vinajet.vn/booking", postBooking, {
+                    headers: headers
+                })
+                const tranId = resBooking.data.bookingId.bookingId
+                if (tranId) {
+                    setTranId(tranId);
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
     };
 
     function formatNumber(number: number) {
@@ -171,56 +375,109 @@ function Booking() {
     };
 
     const total = dataBooking.reduce((num, cur) =>
-        num +=
-        (cur.TotalPriceAdt * cur.Adt + cur.TotalPriceChd * cur.Chd + cur.TotalPriceInf * cur.Inf)
+        num += cur.fullPrice
         , 0)
 
-    const flattenListAircraft = (response: any) => {
-        if (response.ListAircraft && Array.isArray(response.ListAircraft)) {
-            return response.ListAircraft;
+    useEffect(() => {
+        const fetchBaggageData = async (data: any) => {
+            const AuthorizationCode = await getCode();
+
+            const query = {
+                AgCode: "VINAJET145",
+                ListFareData: [
+                    {
+                        Session: data.session,
+                        SessionId: data.seesionId,
+                        To: data.listFlight[0].endPoint,
+                        From: data.listFlight[0].startPoint,
+                        FareDataId: data.listFlight[0].fareDataId,
+                        AutoIssue: false,
+                        ListFlight: [
+                            {
+                                FlightValue: data.listFlight[0].flightValue,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            const headers = {
+                Authorization: AuthorizationCode,
+            };
+
+            try {
+                const response = await axios.post(`https://api.vinajet.vn/get-baggage`, query, {
+                    headers: headers,
+                });
+
+                return response.data.listBaggage;
+            } catch (error) {
+                console.log(error);
+                return [];
+            }
+        };
+
+        const isArrayLocal = localStorage.getItem('bookingInf');
+
+        if (isArrayLocal) {
+            const dataBookingData = JSON.parse(isArrayLocal);
+            const data1 = dataBookingData.find((element: BookingType) => element.key === 1);
+            const data2 = dataBookingData.find((element: BookingType) => element.key === 2);
+
+            const onewayBaggagePromise = data1 ? fetchBaggageData(data1) : Promise.resolve([]);
+            const returnBaggagePromise = data2 ? fetchBaggageData(data2) : Promise.resolve([]);
+
+            Promise.all([onewayBaggagePromise, returnBaggagePromise])
+                .then(([onewayBaggage, returnBaggage]) => {
+                    if (data1) {
+                        setOnewayBaggage(onewayBaggage);
+                    }
+                    if (data2) {
+                        setReturnBaggage(returnBaggage);
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
         }
-        return [];
-    };
+    }, []);
 
+    const oneWayOption = onewayBaggage.map((element: any) => {
+        return {
+            label: `Ký gửi ${element.name} - ${formatNumber(element.price)} ${element.currency}`,
+            value: element.code
+        };
+    });
 
-    const flatData = [...allData, ...allDataTwo].flatMap((response: any) => flattenListAircraft(response)) ?? []
-
-    const uniqueSet = new Set(flatData.map((item: any) => JSON.stringify(item)));
-    const uniqueArray = Array.from(uniqueSet).map((item: any) => JSON.parse(item));
-
-    const getTypePlaneMap = (item: any) => {
-        const typePlane = item && uniqueArray.length > 0
-            ? uniqueArray.find((element: any) => element.IATA === item.ListSegment[0].Plane)?.Manufacturer
-            : '';
-        return typePlane
-    }
-
-
-    const getAirPortName = (item: any, key: string) => {
-        if (key === 'start') {
-            const airportNameStart = listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === item.StartPoint).AirportName
-            return airportNameStart
-        } else {
-            const airportNameEnd = listGeoCodeOneTrip.length > 0 && listGeoCodeOneTrip.find((element: any) => element.AirportCode === item.EndPoint).AirportName
-            return airportNameEnd
-        }
-    }
+    const returnOption = returnBaggage.map((element: any) => {
+        return {
+            label: `Ký gửi ${element.name} - ${formatNumber(element.price)} ${element.currency}`,
+            value: element.code
+        };
+    });
 
     return (
         <section className='booking-section'>
+            {bookingLoading === true
+                ?
+                <div className='custom-spin-loading'>
+                    <div className="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                    Đang tiến hành giữ chỗ.
+                    <p className='dsc'>Vui lòng không thoát trang.</p>
+                </div> : ''}
             <div className='booking-container'>
                 <h3 className='title-page'>Đặt phòng của bạn.</h3>
                 <p className='dsc-page'>Điền thông tin chi tiết của bạn và xem lại đặt phòng của bạn.</p>
                 <div className='booking-grid'>
                     <div className='flex-col'>
-                        <Form layout="vertical" onFinish={handleSubmitInf}>
+                        <Form layout="vertical">
                             <div className='booking-grid-item col-2'>
                                 <h3 className='title-page'>Thông tin chi tiết về khách du lịch.</h3>
                                 <div className='contact-form'>
                                     {/* <div className='contact-header'>
                                         <p className='text-15'>Thông tin hành khách</p>
                                     </div> */}
-                                    {dataBooking.length > 0 && dataBooking[0].Adt > 0
+                                    {dataBooking.length > 0 && dataBooking[0].adt > 0
                                         && <Row>
                                             <div className='contact-header inner'>
                                                 <p className='text-15'>Thông tin người lớn</p>
@@ -232,14 +489,14 @@ function Booking() {
                                             <Col span={24} sm={24} style={{ alignItems: 'center', display: 'flex' }}>
                                                 <p style={{ fontWeight: '700' }}>Người lớn {index + 1}</p>
                                             </Col>
-                                            <Col span={9} sm={9} xs={24}>
+                                            <Col span={12} sm={12} xs={24}>
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['content', index]}
-                                                    rules={[{ required: true, message: 'Tiêu đề là bắt buộc' }]}
                                                 >
                                                     <Select
                                                         value={formItem.content}
+                                                        defaultValue={'Ông'}
                                                         onChange={(value) => handleInputChangeInf(index, 'content', value)}
                                                     >
                                                         {content.map((code) => (
@@ -250,37 +507,47 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={9} sm={9} xs={24}>
+                                            <Col span={12} sm={12} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullname', index]}
                                                     rules={[{ required: true, message: 'Vui lòng nhập họ và tên của bạn' }]}
                                                 >
                                                     <Input
-                                                        value={formItem.fullname}
+                                                        // value={formItem.fullname}
                                                         onChange={(e) => handleInputChangeInf(index, 'fullname', e.target.value)}
                                                     />
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={6} sm={6} xs={12}>
+                                            <Col span={12} sm={12} xs={12}>
                                                 <Form.Item
-                                                    label="Thêm hành lý"
+                                                    label="Thêm hành lý lượt đi"
                                                     name={['luggage', index]}
                                                 >
                                                     <Select
-                                                        defaultValue="1"
+                                                        style={{ fontSize: '12px' }}
+                                                        // defaultValue="1"
                                                         onChange={(value) => handleInputChangeInf(index, 'luggage', value)}
-                                                        options={[
-                                                            { value: '1', label: '1' },
-                                                            { value: '2', label: '2' },
-                                                            { value: '3', label: '3' },
-                                                        ]}
+                                                        options={oneWayOption}
                                                     />
                                                 </Form.Item>
                                             </Col>
+                                            {dataBooking.length > 1 && <Col span={12} sm={12} xs={12}>
+                                                <Form.Item
+                                                    label="Thêm hành lý lượt về"
+                                                    name={['luggage2', index]}
+                                                >
+                                                    <Select
+                                                        style={{ fontSize: '12px' }}
+                                                        // defaultValue="1"
+                                                        onChange={(value) => handleInputChangeInf(index, 'luggage2', value)}
+                                                        options={returnOption}
+                                                    />
+                                                </Form.Item>
+                                            </Col>}
                                         </Row>
                                     ))}
-                                    {dataBooking.length > 0 && dataBooking[0].Chd > 0 && <Row>
+                                    {dataBooking.length > 0 && dataBooking[0].chd > 0 && <Row>
                                         <div className='contact-header inner'>
                                             <p className='text-15'>Thông tin trẻ em từ 2 đến 12 tuổi</p>
                                         </div>
@@ -294,10 +561,10 @@ function Booking() {
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['contentChid', index]}
-                                                    rules={[{ required: true, message: 'Tiêu đề là bắt buộc' }]}
                                                 >
                                                     <Select
                                                         value={formItem.contentChid}
+                                                        defaultValue={'Trẻ em trai'}
                                                         onChange={(value) => handleInputChangeInfChid(index, 'contentChid', value)}
                                                     >
                                                         {contentChid.map((code) => (
@@ -315,7 +582,7 @@ function Booking() {
                                                     rules={[{ required: true, message: 'Vui lòng nhập họ và tên của bạn' }]}
                                                 >
                                                     <Input
-                                                        value={formItem.fullnameChid}
+                                                        // value={formItem.fullnameChid}
                                                         onChange={(e) => handleInputChangeInfChid(index, 'fullnameChid', e.target.value)}
                                                     />
                                                 </Form.Item>
@@ -324,7 +591,7 @@ function Booking() {
                                                 <Form.Item
                                                     label="Nhập ngày sinh"
                                                     name={['date', index]}
-                                                    rules={[{ required: true, message: 'Vui lòng nhập họ và tên của bạn' }]}
+                                                    rules={[{ required: true, message: 'Vui lòng nhập ngày sinh' }]}
                                                     validateStatus={errors[index] ? 'error' : ''}
                                                     help={errors[index]}
                                                 >
@@ -338,7 +605,7 @@ function Booking() {
 
                                         </Row>
                                     ))}
-                                    {dataBooking.length > 0 && dataBooking[0].Inf > 0
+                                    {dataBooking.length > 0 && dataBooking[0].inf > 0
                                         && <Row>
                                             <div className='contact-header inner'>
                                                 <p className='text-15'>Thông tin trẻ em dưới 2 tuổi</p>
@@ -355,10 +622,10 @@ function Booking() {
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['contentBaby', index]}
-                                                    rules={[{ required: true, message: 'Tiêu đề là bắt buộc' }]}
                                                 >
                                                     <Select
                                                         value={formItem.contentBaby}
+                                                        defaultValue={'Bé trai'}
                                                         onChange={(value) => handleInputChangeInfBaby(index, 'contentBaby', value)}
                                                     >
                                                         {contentBaby.map((code) => (
@@ -376,7 +643,7 @@ function Booking() {
                                                     rules={[{ required: true, message: 'Vui lòng nhập họ và tên của bạn' }]}
                                                 >
                                                     <Input
-                                                        value={formItem.fullnameBaby}
+                                                        // value={formItem.fullnameBaby}
                                                         onChange={(e) => handleInputChangeInfBaby(index, 'fullnameBaby', e.target.value)}
                                                     />
                                                 </Form.Item>
@@ -385,7 +652,7 @@ function Booking() {
                                                 <Form.Item
                                                     label="Nhập ngày sinh"
                                                     name={['dateBaby', index]}
-                                                    rules={[{ required: true, message: 'Vui lòng nhập họ và tên của bạn' }]}
+                                                    rules={[{ required: true, message: 'Vui lòng nhập ngày sinh' }]}
                                                     validateStatus={errorsBaby[index] ? 'error' : ''}
                                                     help={errorsBaby[index]}
                                                 >
@@ -511,30 +778,36 @@ function Booking() {
                             </div>
                             <p className='text-15' style={{ color: '#3554d1' }}>Chi tiết</p>
                         </div>
-                        {dataBooking.map((element: BookingType, index) => {
-                            const totalFee = element.TotalFeeTaxAdt + element.TotalFeeTaxChd + element.TotalFeeTaxInf
+                        {dataBooking.map((element: any, index) => {
+                            const totalFee = (
+                                ((element.feeAdt + element.serviceFeeAdt + element.taxAdt) * element.adt)
+                                +
+                                ((element.feeChd + element.serviceFeeChd + element.taxChd) * element.chd)
+                                +
+                                ((element.feeInf + element.serviceFeeInf + element.taxInf) * element.inf)
+                            )
                             return (
                                 <div className='plane-frame'>
                                     <p className='header-text text-15'><button className='continue'>Chuyến {index === 0 ? 'đi' : 'về'}</button> • {formatNgayThangNam3(element.StartDate)}</p>
                                     <div className='frame-booking-logo'>
-                                        {getAirlineLogo(element.AirlineOperating, '40px')}
+                                        {getAirlineLogo(element.airline, '40px')}
                                         <div className='booking-logo-col'>
                                             <p className='header-text text-15'>
-                                                {getAirlineFullName(element.AirlineOperating)}
+                                                {getAirlineFullName(element.airline)}
                                             </p>
                                             <p className='header-text text-15 blur'>
                                                 {element.FlightNumber}
                                             </p>
                                         </div>
-                                        <div className='booking-logo-col' style={{width:'100%'}}>
-                                            <span className='text-15' style={{textAlign:'right'}}><strong>{getTypePlaneMap(element)} {element.ListSegment[0]?.Plane}</strong> </span>
-                                            <span className='text-15' style={{textAlign:'right'}}><strong>{element.ListSegment[0].Cabin}</strong></span>
+                                        <div className='booking-logo-col' style={{ width: '100%' }}>
+                                            <span className='text-15' style={{ textAlign: 'right' }}><strong>{element.listFlight[0].flightNumber}</strong> </span>
+                                            <span className='text-15' style={{ textAlign: 'right' }}><strong>{element.listFlight[0].fareClass}</strong></span>
                                         </div>
                                     </div>
                                     <div className='flex-center-item booking'>
                                         <div className='item-col fix-content'>
-                                            <h4 className="searchMenu__title text-truncate">{element.StartTime}</h4>
-                                            <p className="filter-item text-truncate">{convertCity(element.StartPoint)} ({element.StartPoint})</p>
+                                            <h4 className="searchMenu__title text-truncate">{formatTimeByDate(element.listFlight[0].startDate)}</h4>
+                                            <p className="filter-item text-truncate">{convertCity(element.listFlight[0].startPoint)} ({element.listFlight[0].startPoint})</p>
                                         </div>
                                         <div className='item-col'>
                                             <div className='frame-time-line'>
@@ -545,26 +818,26 @@ function Booking() {
                                             <p className='filter-item fix-content'>{getNumberOfStops2(element)}</p>
                                         </div>
                                         <div className='item-col fix-content'>
-                                            <h4 className="searchMenu__title text-truncate">{element.EndTime}</h4>
-                                            <p className="filter-item text-truncate">{convertCity(element.EndPoint)} ({element.EndPoint})</p>
+                                            <h4 className="searchMenu__title text-truncate">{formatTimeByDate(element.listFlight[0].endDate)}</h4>
+                                            <p className="filter-item text-truncate">{convertCity(element.listFlight[0].endPoint)} ({element.listFlight[0].endPoint})</p>
                                         </div>
                                     </div>
                                     <div className='frame-price'>
-                                        {element.Adt > 0 && <div className='price-item'>
+                                        {element.adt > 0 && <div className='price-item'>
                                             <p className='title'>Vé người lớn</p>
-                                            <p className='title'>{element.Adt} x {element.TotalPriceAdt.toLocaleString("vi-VN")} {element.Currency}</p>
+                                            <p className='title'>{element.adt} x {formatNumber((element.fareAdt + element.feeAdt + element.taxAdt + element.serviceFeeAdt) * element.adt)} {element.currency ?? 'VND'}</p>
                                         </div>}
-                                        {element.Chd > 0 && <div className='price-item'>
+                                        {element.chd > 0 && <div className='price-item'>
                                             <p className='title'>Vé người trẻ em</p>
-                                            <p className='title'>{element.Chd} x {element.TotalPriceChd.toLocaleString("vi-VN")} {element.Currency}</p>
+                                            <p className='title'>{element.chd} x {formatNumber((element.fareChd + element.feeChd + element.taxChd + element.serviceFeeChd) * element.chd)} {element.currency ?? 'VND'}</p>
                                         </div>}
-                                        {element.Inf > 0 && <div className='price-item'>
+                                        {element.inf > 0 && <div className='price-item'>
                                             <p className='title'>Vé em bé</p>
-                                            <p className='title'>{element.Inf} x {element.TotalPriceInf.toLocaleString("vi-VN")} {element.Currency}</p>
+                                            <p className='title'>{element.inf} x {formatNumber((element.fareInf + element.feeInf + element.taxInf + element.serviceFeeInf) * element.inf)} {element.currency ?? 'VND'}</p>
                                         </div>}
                                         <div className='price-item'>
                                             <p className='title'>Tổng thuế và phí</p>
-                                            <p className='title'>{totalFee.toLocaleString("vi-VN")} {element.Currency}</p>
+                                            <p className='title'>{formatNumber(totalFee)} {element.currency ?? 'VND'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -574,13 +847,14 @@ function Booking() {
                             <div className='frame-price'>
                                 <div className='price-item'>
                                     <p className='title'>Tổng cộng</p>
-                                    <p className='title'>{formatNumber(total)} {dataBooking[0]?.Currency}</p>
+                                    <p className='title'>{formatNumber(total)} {dataBooking[0]?.currency ?? 'VND'}</p>
                                 </div>
                             </div>
                         </div>
                     </div>}
                 </div>
             </div>
+            {/* </Spin> */}
         </section>
     )
 }

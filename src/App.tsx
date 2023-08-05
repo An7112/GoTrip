@@ -5,6 +5,7 @@ import Header from 'component/header/header';
 import Home from 'pages/home/home';
 import FilteredListPage from 'pages/filterpage/filtered-list-page';
 import Booking from 'pages/booking/booking';
+import ThanksYou from 'pages/thanks-you/thanks-you';
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
             <Route path='/Home' element={<Home />} />
             <Route path='/filtered' element={<FilteredListPage />} />
             <Route path='/booking' element={<Booking />} />
+            <Route path='/thanks-you' element={<ThanksYou />} />
           </Routes>
           {/* Footer */}
         </div>

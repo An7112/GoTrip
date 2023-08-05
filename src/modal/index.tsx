@@ -33,6 +33,9 @@ export interface ListSegmentType {
     Plane: string
 }
 export interface BookingType {
+    FlightValue: string;
+    Session: string;
+    FareDataId: number;
     TotalPriceInf: number;
     TotalPriceAdt: number;
     TotalPriceChd: number;

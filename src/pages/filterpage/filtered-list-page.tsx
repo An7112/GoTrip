@@ -126,11 +126,31 @@ function FilteredListPage() {
 
 
     const flattenDomesticDatas = (response: any) => {
+        const returnLocation = (code: string) => {
+            if (code) {
+                const cityName = dataCountry.find((element: any) => element.code === code)?.city;
+                return {
+                    airportId: code,
+                    cityId: code,
+                    cityName: cityName,
+                    name: cityName,
+                    tag: "",
+                };
+            }
+        };
+
         if (response.listFareData && Array.isArray(response.listFareData)) {
-            return response.listFareData;
+            const updatedListFareData = response.listFareData.map((item: any) => ({
+                ...item,
+                session: response.session,
+                from: returnLocation(item.listFlight[0].startPoint),
+                to: returnLocation(item.listFlight[0].endPoint),
+            }));
+            return updatedListFareData;
         }
         return [];
     };
+
     const flattenListFlight = (data: any) => {
         if (data.listFlight && Array.isArray(data.listFlight)) {
             return data.listFlight;
