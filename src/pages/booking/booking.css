@@ -22,13 +22,13 @@
     flex-direction: column;
     justify-content: center;
     font-size: 14px;
-    color: #6574a8;
+    color: #4095FE;
     font-weight: 550;
 }
 
 .custom-spin-loading .dsc{
     font-weight: 400;
-    color: #6574a8;
+    color: #4095FE;
 }
 
 .booking-grid {
@@ -273,7 +273,7 @@
     width: 13px;
     height: 13px;
     border-radius: 50%;
-    background: #2e3d70;
+    background: #4095FE;
     animation-timing-function: cubic-bezier(0, 1, 1, 0);
   }
   .lds-ellipsis div:nth-child(1) {

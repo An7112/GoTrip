@@ -446,7 +446,7 @@
 }
 
 
-.custom-tabs.filter .ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab .ant-tabs-tab-btn{
+.ant-tabs-nav .ant-tabs-nav-wrap .ant-tabs-nav-list .ant-tabs-tab .ant-tabs-tab-btn{
     background-color: #3554d1;
     padding: 12px;
     color: white !important;

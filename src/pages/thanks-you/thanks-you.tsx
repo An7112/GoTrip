@@ -4,6 +4,7 @@ import { formatDayByDateNoT, formatTimeByDate, getAirlineLogo, getCiTy } from "u
 import axios from "axios";
 import { Tabs } from "antd";
 import dayjs from "dayjs";
+import { BsFillCheckCircleFill } from 'react-icons/bs'
 
 const ThanksYou = () => {
 
@@ -11,8 +12,10 @@ const ThanksYou = () => {
     const [ticketInfMap, setTicketInfMap] = useState<any[]>([])
     const [listPassenger, setListPassenger] = useState([])
     const [QRURL, setQRURL] = useState('')
-    const [bookingCode, setBookingCode] = useState<any>(null)
     const [amount, setAmount] = useState(0)
+    const [idBooking, setIdBooking] = useState(null)
+    const [paymentOpen, setPaymentOpen] = useState(false)
+    let scrollTimeout: ReturnType<typeof setTimeout>;
 
     useEffect(() => {
         const isArrayLocal = localStorage.getItem('bookingFn')
@@ -21,12 +24,13 @@ const ThanksYou = () => {
             setTicketInf(data)
             setTicketInfMap(data.listFareData)
             setListPassenger(data.listPassenger)
-            const resultObject: any = {};
-            resultObject["key1"] = data.listFareData[0].bookingCode;
-            if (data.listFareData.length > 1) {
-                resultObject["keys2"] = data.listFareData[1].bookingCode;
-            }
-            setBookingCode(resultObject)
+            // const resultObject: any = {};
+            // resultObject["key1"] = data.listFareData[0].bookingCode;
+            // if (data.listFareData.length > 1) {
+            //     resultObject["keys2"] = data.listFareData[1].bookingCode;
+            // }
+            // setBookingCode(resultObject)
+            setIdBooking(data.id)
             const amount = data.listFareData.reduce((num: number, cur: any) =>
                 num +=
                 (((cur.fareAdt + cur.feeAdt + cur.serviceFeeAdt + cur.taxAdt) * cur.adt)
@@ -45,7 +49,7 @@ const ThanksYou = () => {
                 "accountName": "HUYNH PHUOC MAN",
                 "acqId": 970407,
                 "amount": existingValue,
-                "addInfo": `${(bookingCode && bookingCode.key1) ? bookingCode.key1 : ''} ${(bookingCode && bookingCode.key2) ? bookingCode.key2 : ''}`,
+                "addInfo": `${idBooking && idBooking}`,
                 "format": "text",
                 "template": "lzlVuTE"
             }
@@ -53,7 +57,7 @@ const ThanksYou = () => {
             setQRURL(res.data.data.qrDataURL)
         }
         fetchBank()
-    }, [amount, bookingCode, ticketInfMap])
+    }, [amount, idBooking, ticketInfMap, paymentOpen])
 
     const mergedArray = listPassenger.flatMap((obj: any) => obj.listBaggage)
     const stringValueFrom = ticketInfMap.length > 0
@@ -62,27 +66,145 @@ const ThanksYou = () => {
     const stringValueFrom2 = ticketInfMap.length > 0
         ? `${ticketInfMap[0].listFlight[0].startPoint}-${ticketInfMap[0].listFlight[0].endPoint}`
         : ''
-    const stringValueTo = ticketInfMap.length > 1 ? `${ticketInfMap[0].listFlight[0].startPoint + ticketInfMap[0].listFlight[0].endPoint}` : ''
-    const stringValueTo2 = ticketInfMap.length > 1 ? `${ticketInfMap[0].listFlight[0].startPoint}-${ticketInfMap[0].listFlight[0].endPoint}` : ''
+    const stringValueTo = ticketInfMap.length > 1 ? `${ticketInfMap[1].listFlight[0].startPoint + ticketInfMap[1].listFlight[0].endPoint}` : ''
+    const stringValueTo2 = ticketInfMap.length > 1 ? `${ticketInfMap[1].listFlight[0].startPoint}-${ticketInfMap[1].listFlight[0].endPoint}` : ''
     const mergedArrayFrom = mergedArray.filter((element: any) => element.route === stringValueFrom || element.route === stringValueFrom2)
     const mergedArrayTo = mergedArray.filter((element: any) => element.route === stringValueTo || element.route === stringValueTo2)
-    const totalBaggageFrom = mergedArrayFrom.reduce((num, cur: any) => num += Number(cur.value), 0)
-    const totalBaggageTo = mergedArrayTo.reduce((num, cur: any) => num += Number(cur.value), 0)
+    const totalBaggageFrom = mergedArrayFrom.reduce((num, cur: any) => num += Number(cur.value), 0) ?? 0
+    const totalBaggageTo = mergedArrayTo.reduce((num, cur: any) => num += Number(cur.value), 0) ?? 0
+
+    const handleButtonClick = () => {
+        setPaymentOpen(true);
+
+        clearTimeout(scrollTimeout);
+
+        scrollTimeout = setTimeout(() => {
+            const targetElement = document.getElementById('scroll-payment');
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
 
     return (
         <section className='thanks-section'>
             <div className="thanks-container">
+                <div className="successfully">
+                    <BsFillCheckCircleFill className="check" />
+                    <h3 className="title-info" style={{ margin: '0' }}>Đặt vé thành công!</h3>
+                    <p className="inf-dsc">Thông tin đặt chỗ và hướng dẫn thanh toán đã được gửi tới email.</p>
+                </div>
                 <h3 className="title-info">Thông tin vé của bạn.</h3>
-                <Tabs
-                    defaultActiveKey="1"
-                    centered
-                    items={ticketInfMap.map((ticket: any, i) => {
-                        const id = String(i + 1);
-                        return {
-                            label: `Vé chuyến ${i === 0 ? 'đi' : 'về'}`,
-                            key: id,
-                            children: <div className="ticket-information">
-                                <h3 className="title-info">Cần thanh toán trước <p className="inf-dsc" style={{ fontWeight: '400' }}>{dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}</p></h3>
+                {ticketInfMap.length > 1
+                    ? <Tabs
+                        defaultActiveKey="1"
+                        centered
+                        items={ticketInfMap.map((ticket: any, i) => {
+                            const id = String(i + 1);
+                            return {
+                                label: `Vé chuyến ${i === 0 ? 'đi' : 'về'}`,
+                                key: id,
+                                children: <div className="ticket-information">
+                                    <div>
+                                        <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                        <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                        <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                                    </div>
+                                    <div className="frame-ticket">
+                                        <div className="header-ticket">
+                                            <div className="frame-logo">
+                                                {/* <p className="logo-title">{ticket.airlineName}</p> */}
+                                                {getAirlineLogo(ticket.airline, '160px')}
+                                            </div>
+                                        </div>
+                                        <div className="body-ticket">
+                                            <div className="ticket-inf-item">
+                                                <h3 className="inf-title">HỌ VÀ TÊN</h3>
+                                                <ol>
+                                                    {
+                                                        listPassenger.length > 0 && listPassenger.map((passenger: any) => (
+                                                            <li>{passenger.lastName} {passenger.firstName}</li>
+                                                        ))
+                                                    }
+                                                </ol>
+                                            </div>
+                                            <div className="ticket-inf-item col-2">
+                                                <div className="flex-row-inf">
+                                                    <div>
+                                                        <h3 className="inf-title">MÃ ĐẶT CHỖ </h3>
+                                                        <p className="inf-dsc bold">{ticket.bookingCode}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
+                                                    <h3 className="inf-title" style={{ fontSize: '16px' }}>THÔNG TIN CHUYẾN BAY</h3>
+                                                </div>
+                                                <div className="flex-row-inf">
+                                                    <h3 className="inf-title">CHUYẾN BAY</h3>
+                                                    <p className="inf-dsc bold">{ticket.listFlight[0].flightNumber}</p>
+                                                </div>
+                                                <div className="flex-row-inf">
+                                                    <h3 className="inf-title">NƠI ĐI</h3>
+                                                    <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].startPoint)}</p>
+                                                </div>
+                                                <div className="flex-row-inf">
+                                                    <h3 className="inf-title">NƠI ĐẾN</h3>
+                                                    <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].endPoint)}</p>
+                                                </div>
+                                                <div className="flex-row-inf">
+                                                    <h3 className="inf-title">KHỞI HÀNH</h3>
+                                                    <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].startDate)}</p>
+                                                </div>
+                                                <div className="flex-row-inf">
+                                                    <h3 className="inf-title">GIỜ ĐẾN</h3>
+                                                    <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].endDate)}</p>
+                                                </div>
+                                                <div className="flex-row-inf">
+                                                    <h3 className="inf-title">NGÀY</h3>
+                                                    <p className="inf-dsc bold">{formatDayByDateNoT(ticket.listFlight[0].startDate)}</p>
+                                                </div>
+                                            </div>
+                                            <div className="ticket-inf-item">
+                                                <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
+                                                    <h3 className="inf-title">DỊCH VỤ CỘNG THÊM</h3>
+                                                </div>
+                                                <div className="flex-row-inf">
+                                                    <h3 className="inf-title">HÀNH LÝ</h3>
+                                                    <p className="inf-dsc">{i === 0 ? totalBaggageFrom : totalBaggageTo} Kg</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="warnning">
+                                            <div className="warnning-item">
+                                                <p className="warnning-dsc">Quý khách vui lòng mang theo đầỳ đủ <strong>giấy tờ tùy thân</strong></p>
+                                            </div>
+                                            <div className="warnning-item" style={{ borderRight: '1px solid #e0e7ff', borderLeft: '1px solid #e0e7ff' }}>
+                                                <p className="warnning-dsc">Có mặt tại sân bay ít nhất <br /> <strong>2 tiếng trước giờ khởi hành</strong></p>
+                                            </div>
+                                            <div className="warnning-item">
+                                                <p className="warnning-dsc">Ngày trên vé, được tính <strong>theo giờ địa phương</strong></p>
+                                            </div>
+                                        </div>
+                                        <div className="header-ticket">
+                                            <h3 className="title-info">Ghi Hotline đại lý: 0984227777</h3>
+                                            <div className="frame-logo">
+                                                {/* <p className="logo-title">{ticket.airlineName}</p> */}
+                                                {getAirlineLogo(ticket.airline, '160px')}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>,
+                            };
+                        })}
+                    />
+                    : ticketInfMap.map((ticket) => (
+                        <div className="ticket-information">
+                            <div>
+                                <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                            </div>
+                            <div className="frame-ticket">
                                 <div className="header-ticket">
                                     <div className="frame-logo">
                                         {/* <p className="logo-title">{ticket.airlineName}</p> */}
@@ -91,7 +213,7 @@ const ThanksYou = () => {
                                 </div>
                                 <div className="body-ticket">
                                     <div className="ticket-inf-item">
-                                        <h3 className="inf-title">HỌ VÀ TÊN / NAME</h3>
+                                        <h3 className="inf-title">HỌ VÀ TÊN</h3>
                                         <ol>
                                             {
                                                 listPassenger.length > 0 && listPassenger.map((passenger: any) => (
@@ -103,49 +225,45 @@ const ThanksYou = () => {
                                     <div className="ticket-inf-item col-2">
                                         <div className="flex-row-inf">
                                             <div>
-                                                <h3 className="inf-title">MÃ ĐẶT CHỖ / PNR</h3>
-                                                <p className="inf-dsc">{ticket.bookingCode}</p>
+                                                <h3 className="inf-title">MÃ ĐẶT CHỖ </h3>
+                                                <p className="inf-dsc bold">{ticket.bookingCode}</p>
                                             </div>
                                         </div>
                                         <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
                                             <h3 className="inf-title" style={{ fontSize: '16px' }}>THÔNG TIN CHUYẾN BAY</h3>
                                         </div>
                                         <div className="flex-row-inf">
-                                            <h3 className="inf-title">CHUYẾN BAY / FLIGHT</h3>
-                                            <p className="inf-dsc">{ticket.listFlight[0].flightNumber}</p>
+                                            <h3 className="inf-title">CHUYẾN BAY</h3>
+                                            <p className="inf-dsc bold">{ticket.listFlight[0].flightNumber}</p>
                                         </div>
                                         <div className="flex-row-inf">
-                                            <h3 className="inf-title">NƠI ĐI / FROM</h3>
-                                            <p className="inf-dsc">{getCiTy(ticket.listFlight[0].startPoint)}</p>
+                                            <h3 className="inf-title">NƠI ĐI</h3>
+                                            <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].startPoint)}</p>
                                         </div>
                                         <div className="flex-row-inf">
-                                            <h3 className="inf-title">NƠI ĐẾN / TO</h3>
-                                            <p className="inf-dsc">{getCiTy(ticket.listFlight[0].endPoint)}</p>
+                                            <h3 className="inf-title">NƠI ĐẾN</h3>
+                                            <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].endPoint)}</p>
                                         </div>
                                         <div className="flex-row-inf">
-                                            <h3 className="inf-title">KHỞI HÀNH / DEPARTING AT</h3>
-                                            <p className="inf-dsc">{formatTimeByDate(ticket.listFlight[0].startDate)}</p>
+                                            <h3 className="inf-title">KHỞI HÀNH</h3>
+                                            <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].startDate)}</p>
                                         </div>
                                         <div className="flex-row-inf">
-                                            <h3 className="inf-title">GIỜ ĐẾN / ARRIVING AT</h3>
-                                            <p className="inf-dsc">{formatTimeByDate(ticket.listFlight[0].endDate)}</p>
+                                            <h3 className="inf-title">GIỜ ĐẾN</h3>
+                                            <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].endDate)}</p>
                                         </div>
                                         <div className="flex-row-inf">
-                                            <h3 className="inf-title">NGÀY / DATE</h3>
-                                            <p className="inf-dsc">{formatDayByDateNoT(ticket.listFlight[0].startDate)}</p>
+                                            <h3 className="inf-title">NGÀY</h3>
+                                            <p className="inf-dsc bold">{formatDayByDateNoT(ticket.listFlight[0].startDate)}</p>
                                         </div>
                                     </div>
                                     <div className="ticket-inf-item">
-                                        <h3 className="inf-title" style={{ textAlign: 'center' }}>THANH TOÁN / PAYMENT</h3>
-                                        <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
-                                            <h3 className="inf-title">0 VNĐ</h3>
-                                        </div>
                                         <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
                                             <h3 className="inf-title">DỊCH VỤ CỘNG THÊM</h3>
                                         </div>
                                         <div className="flex-row-inf">
-                                            <h3 className="inf-title">HÀNH LÝ / BAGGAGE</h3>
-                                            <p className="inf-dsc">{i === 0 ? totalBaggageFrom : totalBaggageTo} Kg</p>
+                                            <h3 className="inf-title">HÀNH LÝ</h3>
+                                            <p className="inf-dsc">{totalBaggageFrom} Kg</p>
                                         </div>
                                     </div>
                                 </div>
@@ -166,24 +284,28 @@ const ThanksYou = () => {
                                         {getAirlineLogo(ticket.airline, '160px')}
                                     </div>
                                 </div>
-                            </div>,
-                        };
-                    })}
-                />
-                <h3 className="title-info">Thông tin thanh toán.</h3>
-                <div className="qr-item">
-                    <img src={QRURL} className="image-qr" alt="" />
-                    <div className="qr-inf">
-                        <img className="img-qr naspas" src='media/logo/napas.png' alt="" />
-                        <div className="qr-line"></div>
-                        <img className="img-qr" src='media/logo/Logo-TCB-H.webp' alt="" />
-                    </div>
-                    <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>HUYNH PHUOC MAN</h3>
-                    <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>19027635064028</h3>
-                    <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>Số tiền: {amount.toLocaleString('vn')} VNĐ</h3>
-                    {(bookingCode && bookingCode.key1 != null) && <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>Nội dung chuyển khoản: {(bookingCode && bookingCode.key1) ? bookingCode.key1 : ''} {(bookingCode && bookingCode.key2) ? bookingCode.key2 : ''}</h3>}
+                            </div>
 
-                </div>
+                        </div>
+                    ))
+                }
+                <button className="button-payment" onClick={handleButtonClick}>Thanh toán</button>
+                {paymentOpen === true && <div className="payment-inf">
+                    <h3 className="title-info">Thông tin thanh toán.</h3>
+                    <div className="qr-item">
+                        <img id="scroll-payment" src={QRURL} className="image-qr" alt="" />
+                        <div className="qr-inf">
+                            <img className="img-qr naspas" src='media/logo/napas.png' alt="" />
+                            <div className="qr-line"></div>
+                            <img className="img-qr" src='media/logo/Logo-TCB-H.webp' alt="" />
+                        </div>
+                        <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>HUYNH PHUOC MAN</h3>
+                        <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>19027635064028</h3>
+                        <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>Số tiền: {amount.toLocaleString('vn')} VNĐ</h3>
+                        <h3 className="title-info" style={{ margin: '0', fontWeight: '400' }}>Nội dung chuyển khoản: {idBooking}</h3>
+                    </div>
+                </div>}
+
             </div>
         </section>
     )

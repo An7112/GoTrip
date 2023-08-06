@@ -9,7 +9,7 @@
     padding: 0 24px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 12px;
     max-width: 100%;
 }
 
@@ -17,7 +17,6 @@
     font-size: 16px;
     font-weight: 550;
     color: black;
-    margin: 24px 0;
 }
 
 .image-qr{
@@ -62,7 +61,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     padding: 12px;
-    border: 3px solid #e0e7ff;
+    border-top: 3px solid #e0e7ff;
 }
 
 .warnning .warnning-item{
@@ -82,12 +81,33 @@
 .ticket-information .header-ticket{
     padding: 0 12px;
     width: 100%;
-    background-color: #e0e7ff;
+    background-color: #c3d3e6;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+}
+
+.button-payment{
+    background-color: #3554D1;
+    border: none;
+    width: fit-content;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: white;
+}
+
+.payment-inf{
+    border-radius: 4px;
+    padding: 12px;
+    border: 1px solid #E1E1E1;
+}
+
+.bold{
+    font-weight: 600;
+    color: #4095FE;
 }
 
 .header-ticket .frame-logo{
@@ -120,6 +140,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin: 6px 0;
     width: 100%;
 }
 
@@ -146,6 +167,31 @@
     justify-content: space-between;
 }
 
+.successfully{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.successfully .check{
+    font-size: 56px;
+    color: #4095FE;
+}
+
+.frame-ticket{
+    border-radius: 4px;
+    overflow: hidden;
+    width: 100%;
+    border: 1px dashed #E1E1E1;
+}
+.ticket-inf-item ol{
+    margin: 0;
+    padding-left: 8px;
+}
+
 @media (max-width: 898px){
     .inf-title{
         font-size: 13px !important;
@@ -158,6 +204,9 @@
     }
     .inf-dsc{
         font-size: 12px;
+    }
+    .thanks-section .thanks-container{
+        padding: 0 12px;
     }
 }
 
@@ -230,7 +279,7 @@
     }
 }
 
-@media (max-width: 586px){
+/* @media (max-width: 586px){
     .inf-title{
         font-size: 8px !important;
     }
@@ -243,10 +292,10 @@
     .warnning-dsc{
         font-size: 7px;
     }
-}
+} */
 
 
-@media (max-width: 528px){
+/* @media (max-width: 528px){
     .inf-title{
         font-size: 7px !important;
     }
@@ -289,4 +338,4 @@
     .warnning-dsc{
         font-size: 4px;
     }
-}
+} */

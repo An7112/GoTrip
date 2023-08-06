@@ -6,7 +6,7 @@ import { Row, Col } from 'antd';
 import dayjs from 'dayjs';
 
 import { BookingType } from 'modal/index';
-import { convertCity, convertDateFormat, formatNgayThangNam3, formatTimeByDate, getAirlineFullName, getAirlineLogo, getCode, getNumberOfStops2 } from 'utils/custom/custom-format';
+import { convertCity, convertDateFormat, formatDayByDate, formatNgayThangNam3, formatTimeByDate, getAirlineFullName, getAirlineLogo, getCode, getNumberOfStops2 } from 'utils/custom/custom-format';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -463,6 +463,7 @@ function Booking() {
             {bookingLoading === true
                 ?
                 <div className='custom-spin-loading'>
+                    <h3>Sắp xong rồi!</h3>
                     <div className="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
                     Đang tiến hành giữ chỗ.
                     <p className='dsc'>Vui lòng không thoát trang.</p>
@@ -491,7 +492,7 @@ function Booking() {
                                             <Col span={24} sm={24} style={{ alignItems: 'center', display: 'flex' }}>
                                                 <p style={{ fontWeight: '700' }}>Người lớn {index + 1}</p>
                                             </Col>
-                                            <Col span={12} sm={12} xs={24}>
+                                            <Col span={5} sm={5} xs={24}>
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['content', index]}
@@ -509,7 +510,7 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={12} sm={12} xs={24}>
+                                            <Col span={10} sm={10} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullname', index]}
@@ -521,7 +522,7 @@ function Booking() {
                                                     />
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={12} sm={12} xs={12}>
+                                            <Col span={9} sm={9} xs={24}>
                                                 <Form.Item
                                                     label="Thêm hành lý lượt đi"
                                                     name={['luggage', index]}
@@ -559,7 +560,7 @@ function Booking() {
                                             <Col span={24} sm={24} style={{ alignItems: 'center', display: 'flex' }}>
                                                 <p style={{ fontWeight: '700' }}>Trẻ em {index + 1}</p>
                                             </Col>
-                                            <Col span={8} sm={8} xs={24}>
+                                            <Col span={6} sm={6} xs={24}>
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['contentChid', index]}
@@ -577,7 +578,7 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={8} sm={8} xs={24}>
+                                            <Col span={10} sm={10} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullnameChid', index]}
@@ -620,7 +621,7 @@ function Booking() {
                                             <Col span={24} sm={24} style={{ alignItems: 'center', display: 'flex' }}>
                                                 <p style={{ fontWeight: '700' }}>Em bé {index + 1}</p>
                                             </Col>
-                                            <Col span={8} sm={8} xs={24}>
+                                            <Col span={6} sm={6} xs={24}>
                                                 <Form.Item
                                                     label="Tiêu đề"
                                                     name={['contentBaby', index]}
@@ -638,7 +639,7 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={8} sm={8} xs={24}>
+                                            <Col span={10} sm={10} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullnameBaby', index]}
@@ -686,7 +687,7 @@ function Booking() {
                                                 help={errorMessages.phone} name="phone" label="Số di động">
                                                 <Input
                                                     name='phone'
-                                                    type='number'
+                                                    maxLength={10}
                                                     addonBefore={
                                                         <Form.Item name="countryCode" noStyle>
                                                             <Select defaultValue="+84">
@@ -790,7 +791,7 @@ function Booking() {
                             )
                             return (
                                 <div className='plane-frame'>
-                                    <p className='header-text text-15'><button className='continue'>Chuyến {index === 0 ? 'đi' : 'về'}</button> • {formatNgayThangNam3(element.StartDate)}</p>
+                                    <p className='header-text text-15'><button className='continue'>Chuyến {index === 0 ? 'đi' : 'về'}</button> • {formatDayByDate(element.listFlight[0].startDate)}</p>
                                     <div className='frame-booking-logo'>
                                         {getAirlineLogo(element.airline, '40px')}
                                         <div className='booking-logo-col'>

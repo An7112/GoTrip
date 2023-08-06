@@ -24,7 +24,7 @@ const PaginatedList = (props: IProps) => {
 
   const { paginatedData, loading, pageRevert, onNumberChange } = props
 
-  const { tripType, selectedItem, listGeoCodeOneTrip, allData, allDataTwo } = useSelector((state: any) => state)
+  const { tripType, selectedItem} = useSelector((state: any) => state)
 
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage, _] = useState(30);
@@ -372,6 +372,7 @@ const PaginatedList = (props: IProps) => {
     (((cur.fareInf + cur.feeInf + cur.taxInf + cur.serviceFeeInf) * cur.inf))
     , 0)
 
+    console.log(pagedItems)
   return (
     <>
       <Drawer
@@ -534,7 +535,7 @@ const PaginatedList = (props: IProps) => {
                       <Button className='detail' style={{ maxWidth: 'fit-content' }} onClick={() => onOpen(element)}>Chi tiết</Button>
                     </div>
                     <div className='item-col-1'>
-                      <h3 className='text-18 text-truncate'>{formatNumber((element.fareAdt + element.taxAdt + element.feeAdt) * element.adt + element.serviceFeeAdt)} {element.Currency ?? 'VNĐ'}</h3>
+                      <h3 className='text-18 text-truncate'>{formatNumber((element.fareAdt + element.taxAdt + element.feeAdt + element.serviceFeeAdt))} {element.Currency ?? 'VNĐ'}</h3>
                       {/* <p className="filter-item text-truncate">16 deals</p> */}
                       {tripType === true
                         ? <button className={'view-deal'} onClick={() => addNewItem({ ...element, key: pageRevert })}>
