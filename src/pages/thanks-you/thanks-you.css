@@ -60,7 +60,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     padding: 12px;
-    border-top: 3px solid #e0e7ff;
+    border-top: 1px dashed #3554D1;
 }
 
 .warnning .warnning-item{
@@ -80,7 +80,7 @@
 .ticket-information .header-ticket{
     padding: 0 12px;
     width: 100%;
-    background-color: #c3d3e6;
+    /* background-color: #c3d3e6; */
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -211,7 +211,7 @@
     border-radius: 4px;
     overflow: hidden;
     width: 100%;
-    border: 1px dashed #E1E1E1;
+    border: 1px dashed #3554d1;
 }
 .ticket-inf-item ol{
     margin: 0;

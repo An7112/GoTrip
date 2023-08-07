@@ -21,7 +21,7 @@ import LoadingBar from 'component/loading-bar/loading-bar';
 import SliderDateTrend from './slider/slider-date-trend';
 import { useDispatch, useSelector } from 'react-redux';
 import MiniBooking from './mini-booking/mini-booking';
-import { setAllData, setAllDataTwo, setAllListFlight, setListGeoCodeOneTrip, setListGeoCodeTwoTrip } from 'store/reducers';
+import { setAllData, setAllDataTwo, setAllListFlight} from 'store/reducers';
 import { formatDate, formatNgayThangNam3, formatTimeByDate, getAirlineFullName, getCode, getNumberOfStops } from 'utils/custom/custom-format';
 import SliderDateTrendReturn from './slider/slider-date-trend-return';
 dayjs.extend(customParseFormat);

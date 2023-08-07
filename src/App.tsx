@@ -19,7 +19,7 @@ function App() {
             <Route path='/Home' element={<Home />} />
             <Route path='/filtered' element={<FilteredListPage />} />
             <Route path='/booking' element={<Booking />} />
-            <Route path='/thanks-you' element={<ThanksYou />} />
+            <Route path='/Thank-you' element={<ThanksYou />} />
           </Routes>
           {/* Footer */}
         </div>

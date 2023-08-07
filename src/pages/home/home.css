@@ -608,13 +608,13 @@
 }
 
 .list-item-select .item-select:hover{
-    background-color: #1677ff;
+    background-color: #3554d1;
     color: white;
     font-size: 14px;
 }
 
 .list-item-select .item-select.active{
-    background-color: #1677ff;
+    background-color: #3554d1;
     color: white;
 }
 

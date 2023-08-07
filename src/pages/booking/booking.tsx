@@ -218,7 +218,7 @@ function Booking() {
                 if (shouldRetry === false || retryCount >= maxRetries - 1) {
                     setBookingLoading(false);
                     localStorage.setItem('bookingFn', JSON.stringify(bookingFn.data))
-                    history(`/thanks-you`);
+                    history(`/Thank-you`);
                 }
             } catch (error) {
                 console.log(error);
@@ -395,7 +395,6 @@ function Booking() {
             && ((dataBooking.length > 0 && dataBooking[0].inf > 0) ? checkField(formDataInfBaby, ["contentBaby", "fullnameBaby", "dateBaby"]) : true)
         ) {
             modal.confirm({
-                style: {backgroundColor:'#3554d1', color:'white'},
                 title: 'Xác nhận thông tin',
                 icon: <ExclamationCircleOutlined />,
                 content: 'Vui lòng kiểm tra chính xác và đầy đủ thông tin đặt chỗ trước khi đặt vé. Quý khách có muốn tiếp tục?',
@@ -579,7 +578,7 @@ function Booking() {
                                             {(returnBaggage.length > index || onewayBaggage.length > index)
                                                 && <>
                                                     <Col span={24} sm={24} style={{ marginBottom: '12px' }}>
-                                                        <Checkbox onChange={(value) => handleAddBaggage(value.target.checked, String(index))}>Thêm hành lý.</Checkbox>
+                                                        <Checkbox style={{marginLeft:'12px'}} onChange={(value) => handleAddBaggage(value.target.checked, String(index))}>Thêm hành lý.</Checkbox>
                                                     </Col>
                                                     {openBaggage.some((element: any) => element.open === true && element.index === String(index))
                                                         && <>
@@ -783,7 +782,7 @@ function Booking() {
                                             </Form.Item>
                                         </Col>
                                         <Col span={24} sm={24} style={{ marginBottom: '12px' }}>
-                                            <Checkbox onChange={(value) => setBill(value.target.checked)}>Yêu cầu xuất hóa đơn</Checkbox>
+                                            <Checkbox style={{marginLeft:'12px'}} onChange={(value) => setBill(value.target.checked)}>Yêu cầu xuất hóa đơn</Checkbox>
                                         </Col>
                                         <Col span={12} sm={12} xs={24} style={{ display: bill === false ? 'none' : '' }}>
                                             <Form.Item

@@ -261,11 +261,12 @@ const ThanksYou = () => {
                                 <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
                             </div>
                             <div className="frame-ticket">
-                                <div className="header-ticket">
+                                <div className="header-ticket" style={{borderBottom: '1px dashed #3554D1'}}>
                                     <div className="frame-logo">
                                         {/* <p className="logo-title">{ticket.airlineName}</p> */}
                                         {getAirlineLogo(ticket.airline, '160px')}
                                     </div>
+                                    <h3 className="title-info">Ghi Hotline đại lý: 0984227777</h3>
                                 </div>
                                 <div className="body-ticket">
                                     <div className="ticket-inf-item">
@@ -332,12 +333,6 @@ const ThanksYou = () => {
                                     </div>
                                     <div className="warnning-item">
                                         <p className="warnning-dsc">Ngày trên vé, được tính <strong>theo giờ địa phương</strong></p>
-                                    </div>
-                                </div>
-                                <div className="header-ticket" style={{ justifyContent: 'flex-end' }}>
-                                    <div className="frame-logo">
-                                        {/* <p className="logo-title">{ticket.airlineName}</p> */}
-                                        {getAirlineLogo(ticket.airline, '160px')}
                                     </div>
                                 </div>
                             </div>
