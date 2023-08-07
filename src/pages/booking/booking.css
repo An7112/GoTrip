@@ -22,13 +22,13 @@
     flex-direction: column;
     justify-content: center;
     font-size: 14px;
-    color: #4095FE;
+    color: #3554d1;
     font-weight: 550;
 }
 
 .custom-spin-loading .dsc{
     font-weight: 400;
-    color: #4095FE;
+    color: #3554d1;
 }
 
 .booking-grid {
@@ -273,9 +273,14 @@
     width: 13px;
     height: 13px;
     border-radius: 50%;
-    background: #4095FE;
+    background: #3554d1;
     animation-timing-function: cubic-bezier(0, 1, 1, 0);
   }
+
+  .ant-modal-confirm-btns .ant-btn.ant-btn-primary{
+    background-color: #172663;
+  }
+
   .lds-ellipsis div:nth-child(1) {
     left: 8px;
     animation: lds-ellipsis1 0.6s infinite;

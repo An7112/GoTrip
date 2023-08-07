@@ -5,6 +5,8 @@ import axios from "axios";
 import { Tabs } from "antd";
 import dayjs from "dayjs";
 import { BsFillCheckCircleFill } from 'react-icons/bs'
+import {MdOutlinePayments} from 'react-icons/md'
+import Countdown from "component/count-down/count-down";
 
 const ThanksYou = () => {
 
@@ -15,6 +17,10 @@ const ThanksYou = () => {
     const [amount, setAmount] = useState(0)
     const [idBooking, setIdBooking] = useState(null)
     const [paymentOpen, setPaymentOpen] = useState(false)
+    const [owPaymentNow, setOwPaymentNow] = useState(false)
+    const [twPaymentNow, setTwPaymentNow] = useState(false)
+    const [loadingQr, setLoadingQr] = useState(true)
+
     let scrollTimeout: ReturnType<typeof setTimeout>;
 
     useEffect(() => {
@@ -30,6 +36,17 @@ const ThanksYou = () => {
             //     resultObject["keys2"] = data.listFareData[1].bookingCode;
             // }
             // setBookingCode(resultObject)
+            if (Array.isArray(data.listFareData)) {
+                if (data.listFareData.length === 1) {
+                    const owCheck = data.listFareData[0].message === "# Yêu cầu thanh toán ngay để được đặt chổ và xuất vé !"
+                    setOwPaymentNow(owCheck)
+                } else if (data.listFareData.length === 2) {
+                    const owCheck = data.listFareData[0].message === "# Yêu cầu thanh toán ngay để được đặt chổ và xuất vé !"
+                    const twCheck = data.listFareData[1].message === "# Yêu cầu thanh toán ngay để được đặt chổ và xuất vé !"
+                    setOwPaymentNow(owCheck)
+                    setTwPaymentNow(twCheck)
+                }
+            }
             setIdBooking(data.id)
             const amount = data.listFareData.reduce((num: number, cur: any) =>
                 num +=
@@ -43,18 +60,26 @@ const ThanksYou = () => {
 
     useEffect(() => {
         const fetchBank = async () => {
-            const existingValue = amount
-            const data = {
-                "accountNo": 19027635064028,
-                "accountName": "HUYNH PHUOC MAN",
-                "acqId": 970407,
-                "amount": existingValue,
-                "addInfo": `${idBooking && idBooking}`,
-                "format": "text",
-                "template": "lzlVuTE"
+            setLoadingQr(true)
+            try {
+                const existingValue = amount
+                const data = {
+                    "accountNo": 19027635064028,
+                    "accountName": "HUYNH PHUOC MAN",
+                    "acqId": 970407,
+                    "amount": existingValue,
+                    "addInfo": `${idBooking && idBooking}`,
+                    "format": "text",
+                    "template": "lzlVuTE"
+                }
+                const res = await axios.post('https://api.vietqr.io/v2/generate', data)
+                setQRURL(res.data.data.qrDataURL)
+                setLoadingQr(false)
+            } catch (error) {
+                console.log(error)
+            } finally {
+                setLoadingQr(false)
             }
-            const res = await axios.post('https://api.vietqr.io/v2/generate', data)
-            setQRURL(res.data.data.qrDataURL)
         }
         fetchBank()
     }, [amount, idBooking, ticketInfMap, paymentOpen])
@@ -74,7 +99,7 @@ const ThanksYou = () => {
     const totalBaggageTo = mergedArrayTo.reduce((num, cur: any) => num += Number(cur.value), 0) ?? 0
 
     const handleButtonClick = () => {
-        setPaymentOpen(true);
+        setPaymentOpen(!paymentOpen);
 
         clearTimeout(scrollTimeout);
 
@@ -105,11 +130,34 @@ const ThanksYou = () => {
                                 label: `Vé chuyến ${i === 0 ? 'đi' : 'về'}`,
                                 key: id,
                                 children: <div className="ticket-information">
-                                    <div>
-                                        <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
-                                        <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
-                                        <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
-                                    </div>
+                                    {i === 0
+                                        ? owPaymentNow === true
+                                            ? <p className="inf-dsc">
+                                                Đối với vé của hãng Vietjet Air bay trong ngày,
+                                                Quý khách cần thanh toán ngay để giữ chỗ.
+                                                <br />
+                                                <Countdown />
+                                            </p>
+                                            : <div>
+                                                <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                                <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                                <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                                            </div>
+
+                                        : twPaymentNow === true ?
+                                            <p className="inf-dsc">
+                                                Đối với vé của hãng Vietjet Air bay trong ngày,
+                                                Quý khách cần thanh toán ngay để giữ chỗ.
+                                                <br />
+                                                <Countdown />
+                                            </p>
+                                            :
+                                            <div>
+                                                <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                                <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                                <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                                            </div>
+                                    }
                                     <div className="frame-ticket">
                                         <div className="header-ticket">
                                             <div className="frame-logo">
@@ -200,7 +248,15 @@ const ThanksYou = () => {
                     : ticketInfMap.map((ticket) => (
                         <div className="ticket-information">
                             <div>
-                                <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                {owPaymentNow === true
+                                    ? <p className="inf-dsc">
+                                        Đối với vé của hãng Vietjet Air bay trong ngày,
+                                        Quý khách cần thanh toán ngay để giữ chỗ.
+                                        <br />
+                                        <Countdown />
+                                    </p>
+                                    : <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                }
                                 <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
                                 <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
                             </div>
@@ -289,8 +345,12 @@ const ThanksYou = () => {
                         </div>
                     ))
                 }
-                <button className="button-payment" onClick={handleButtonClick}>Thanh toán</button>
+                <button className="button-payment" onClick={handleButtonClick}>Thanh toán <MdOutlinePayments/></button>
                 {paymentOpen === true && <div className="payment-inf">
+                    {loadingQr === true
+                        && <div className="loading-qr">
+                            <div className="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                        </div>}
                     <h3 className="title-info">Thông tin thanh toán.</h3>
                     <div className="qr-item">
                         <img id="scroll-payment" src={QRURL} className="image-qr" alt="" />

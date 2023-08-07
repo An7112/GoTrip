@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './booking.css'
 import { BiSolidPlaneAlt } from 'react-icons/bi'
-import { Button, DatePicker, Form, Input, Select, Checkbox, Spin } from 'antd'
+import { Button, DatePicker, Form, Input, Select, Checkbox, Spin, Modal } from 'antd'
 import { Row, Col } from 'antd';
 import dayjs from 'dayjs';
 
@@ -9,8 +9,8 @@ import { BookingType } from 'modal/index';
 import { convertCity, convertDateFormat, formatDayByDate, formatNgayThangNam3, formatTimeByDate, getAirlineFullName, getAirlineLogo, getCode, getNumberOfStops2 } from 'utils/custom/custom-format';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-
 interface FormData {
     lastname?: string;
     firstname?: string;
@@ -23,6 +23,11 @@ interface FormData {
 }
 
 const { Option } = Select;
+
+interface Baggage {
+    open: boolean,
+    index: string
+}
 
 function Booking() {
 
@@ -42,6 +47,8 @@ function Booking() {
     const [errorsBaby, setErrorsBaby] = useState<string[]>([]);
     const [dataBooking, setDataBooking] = useState<any[]>([])
     const [bill, setBill] = useState(false)
+    const [openBaggage, setOpenBaggage] = useState<Baggage[]>([])
+
     const [onewayBaggage, setOnewayBaggage] = useState([])
     const [returnBaggage, setReturnBaggage] = useState([])
     const [bookingLoading, setBookingLoading] = useState(false)
@@ -50,6 +57,8 @@ function Booking() {
     const [tranId, setTranId] = useState<string | null>(null);
     const [retryCount, setRetryCount] = useState<number>(0);
     const maxRetries = 4;
+
+    const [modal, contextHolder] = Modal.useModal();
 
     useEffect(() => {
         fetch('https://api64.ipify.org?format=json')
@@ -104,7 +113,12 @@ function Booking() {
 
     const handleInputChangeInf = (index: number, field: string, value: any) => {
         const updatedFormData: any = [...formDataInf];
-        updatedFormData[index][field] = value;
+        if (field === 'fullname') {
+            const formattedValue = value.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            updatedFormData[index][field] = formattedValue;
+        }else{
+            updatedFormData[index][field] = value;
+        }
         setFormDataInf(updatedFormData);
     };
 
@@ -158,7 +172,7 @@ function Booking() {
             for (const field of fields) {
                 if (arr[i][field] === '' || arr[i][field] == null) {
                     isValid = false;
-                    break; // Không cần kiểm tra các trường khác nữa
+                    break;
                 }
             }
             if (isValid) {
@@ -183,7 +197,7 @@ function Booking() {
 
                 const shouldRetry = bookingFn.data.listFareData.every((item: any) => {
                     if (item.airline === "VJ") {
-                        if(Array.isArray(item.listFlight) && item.listFlight.length > 0){
+                        if (Array.isArray(item.listFlight) && item.listFlight.length > 0) {
                             const startDate = dayjs(item.listFlight[0].startDate);
                             const hoursDifference = startDate.diff(currentTime, 'hour');
                             if (hoursDifference < 24) {
@@ -201,7 +215,7 @@ function Booking() {
                     setRetryCount(retryCount + 1);
                 }
 
-                if (!shouldRetry || retryCount >= maxRetries - 1) {
+                if (shouldRetry === false || retryCount >= maxRetries - 1) {
                     setBookingLoading(false);
                     localStorage.setItem('bookingFn', JSON.stringify(bookingFn.data))
                     history(`/thanks-you`);
@@ -236,7 +250,7 @@ function Booking() {
             && ((dataBooking.length > 0 && dataBooking[0].chd > 0) ? checkField(formDataInfChid, ["contentChid", "fullnameChid", "date"]) : true)
             && ((dataBooking.length > 0 && dataBooking[0].inf > 0) ? checkField(formDataInfBaby, ["contentBaby", "fullnameBaby", "dateBaby"]) : true)
         ) {
-            // console.log('goi')
+            console.log('goi')
             setBookingLoading(true)
             const AuthorizationCode = await getCode();
             const formattedDate = dayjs().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
@@ -365,6 +379,33 @@ function Booking() {
 
     };
 
+    const confirm = () => {
+        const errors: FormData = {};
+        if (!formData.phone) {
+            errors.phone = 'Vui lòng nhập số điện thoại của bạn';
+        }
+        if (!formData.email) {
+            errors.email = 'Vui lòng nhập email';
+        }
+        setErrorMessages(errors);
+        if (
+            Object.keys(errors).length === 0
+            && ((dataBooking.length > 0 && dataBooking[0].adt > 0) ? checkField(formDataInf, ["content", "fullname"]) : true)
+            && ((dataBooking.length > 0 && dataBooking[0].chd > 0) ? checkField(formDataInfChid, ["contentChid", "fullnameChid", "date"]) : true)
+            && ((dataBooking.length > 0 && dataBooking[0].inf > 0) ? checkField(formDataInfBaby, ["contentBaby", "fullnameBaby", "dateBaby"]) : true)
+        ) {
+            modal.confirm({
+                style: {backgroundColor:'#3554d1', color:'white'},
+                title: 'Xác nhận thông tin',
+                icon: <ExclamationCircleOutlined />,
+                content: 'Vui lòng kiểm tra chính xác và đầy đủ thông tin đặt chỗ trước khi đặt vé. Quý khách có muốn tiếp tục?',
+                okText: 'Đặt vé',
+                cancelText: 'Sửa thông tin',
+                onOk: handleSubmitInf,
+            });
+        }
+    };
+
     function formatNumber(number: number) {
         const roundedNumber = Math.ceil(number / 1000) * 1000;
         const formattedNumber = new Intl.NumberFormat('vi-VN').format(roundedNumber);
@@ -458,6 +499,18 @@ function Booking() {
         };
     });
 
+    const handleAddBaggage = (open: boolean, baggage: string) => {
+        const existValue = openBaggage.some((element: any) => element.index === baggage)
+        if (existValue === true) {
+            const newData = openBaggage.filter((element: any) => element.index !== baggage)
+            setOpenBaggage(newData)
+        } else {
+            if (open === true) {
+                setOpenBaggage(prev => [...prev, { open: open, index: baggage }])
+            }
+        }
+    }
+
     return (
         <section className='booking-section'>
             {bookingLoading === true
@@ -468,6 +521,7 @@ function Booking() {
                     Đang tiến hành giữ chỗ.
                     <p className='dsc'>Vui lòng không thoát trang.</p>
                 </div> : ''}
+            {contextHolder}
             <div className='booking-container'>
                 <h3 className='title-page'>Đặt phòng của bạn.</h3>
                 <p className='dsc-page'>Điền thông tin chi tiết của bạn và xem lại đặt phòng của bạn.</p>
@@ -510,7 +564,7 @@ function Booking() {
                                                     </Select>
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={10} sm={10} xs={24}>
+                                            <Col span={19} sm={19} xs={24}>
                                                 <Form.Item
                                                     label="Họ và tên"
                                                     name={['fullname', index]}
@@ -522,32 +576,43 @@ function Booking() {
                                                     />
                                                 </Form.Item>
                                             </Col>
-                                            <Col span={9} sm={9} xs={24}>
-                                                <Form.Item
-                                                    label="Thêm hành lý lượt đi"
-                                                    name={['luggage', index]}
-                                                >
-                                                    <Select
-                                                        style={{ fontSize: '12px' }}
-                                                        // defaultValue="1"
-                                                        onChange={(value) => handleInputChangeInf(index, 'luggage', value)}
-                                                        options={oneWayOption}
-                                                    />
-                                                </Form.Item>
-                                            </Col>
-                                            {dataBooking.length > 1 && <Col span={12} sm={12} xs={12}>
-                                                <Form.Item
-                                                    label="Thêm hành lý lượt về"
-                                                    name={['luggage2', index]}
-                                                >
-                                                    <Select
-                                                        style={{ fontSize: '12px' }}
-                                                        // defaultValue="1"
-                                                        onChange={(value) => handleInputChangeInf(index, 'luggage2', value)}
-                                                        options={returnOption}
-                                                    />
-                                                </Form.Item>
-                                            </Col>}
+                                            {(returnBaggage.length > index || onewayBaggage.length > index)
+                                                && <>
+                                                    <Col span={24} sm={24} style={{ marginBottom: '12px' }}>
+                                                        <Checkbox onChange={(value) => handleAddBaggage(value.target.checked, String(index))}>Thêm hành lý.</Checkbox>
+                                                    </Col>
+                                                    {openBaggage.some((element: any) => element.open === true && element.index === String(index))
+                                                        && <>
+                                                            <Col span={9} sm={9} xs={24}>
+                                                                <Form.Item
+                                                                    label="Thêm hành lý lượt đi"
+                                                                    name={['luggage', index]}
+                                                                >
+                                                                    <Select
+                                                                        style={{ fontSize: '12px' }}
+                                                                        // defaultValue="1"
+                                                                        onChange={(value) => handleInputChangeInf(index, 'luggage', value)}
+                                                                        options={oneWayOption}
+                                                                    />
+                                                                </Form.Item>
+                                                            </Col>
+                                                            {dataBooking.length > 1 && <Col span={12} sm={12} xs={12}>
+                                                                <Form.Item
+                                                                    label="Thêm hành lý lượt về"
+                                                                    name={['luggage2', index]}
+                                                                >
+                                                                    <Select
+                                                                        style={{ fontSize: '12px' }}
+                                                                        // defaultValue="1"
+                                                                        onChange={(value) => handleInputChangeInf(index, 'luggage2', value)}
+                                                                        options={returnOption}
+                                                                    />
+                                                                </Form.Item>
+                                                            </Col>}
+                                                        </>
+                                                    }
+                                                </>
+                                            }
                                         </Row>
                                     ))}
                                     {dataBooking.length > 0 && dataBooking[0].chd > 0 && <Row>
@@ -761,12 +826,13 @@ function Booking() {
                                         </Col>
                                     </Row>
                                     <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', justifyContent: 'space-between', alignItems: 'center', padding: '12px' }}>
-                                        <Button onClick={handleGoBack} type="primary">
+                                        <Button onClick={handleGoBack} style={{backgroundColor:'#3554d1', color:'white'}}>
                                             Quay lại
                                         </Button>
-                                        <Button type="primary" htmlType="submit" onClick={handleSubmitInf}>
+                                        {/* <Button type="primary" htmlType="submit" onClick={handleSubmitInf}>
                                             Đặt vé
-                                        </Button>
+                                        </Button> */}
+                                        <Button htmlType="submit" style={{backgroundColor:'#3554d1', color:'white'}} onClick={confirm}>Đặt vé</Button>
                                     </div>
                                 </div>
                             </div>
