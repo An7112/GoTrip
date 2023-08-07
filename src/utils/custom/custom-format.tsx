@@ -9,7 +9,6 @@ import "dayjs/locale/vi";
 
 dayjs.locale("vi");
 dayjs.extend(utc);
-dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
 
 export const getAirlineLogo = (abbr: string, style: string, fill?: string) => {

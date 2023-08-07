@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { BsFillCheckCircleFill } from 'react-icons/bs'
 import { MdOutlinePayments } from 'react-icons/md'
 import Countdown from "component/count-down/count-down";
+import CountdownTimer from "component/count-down-more/count-down-more";
 
 const ThanksYou = () => {
 
@@ -153,7 +154,6 @@ const ThanksYou = () => {
                 {loadingTicket === true
                     ? <Skeleton active paragraph={{ rows: 10 }} />
                     : <>
-                        <h3 className="title-info">Thông tin vé của bạn.</h3>
                         {ticketInfMap.length > 1
                             ? <Tabs
                                 defaultActiveKey="1"
@@ -164,34 +164,21 @@ const ThanksYou = () => {
                                         label: `Vé chuyến ${i === 0 ? 'đi' : 'về'}`,
                                         key: id,
                                         children: <div className="ticket-information">
-                                            {i === 0
-                                                ? owPaymentNow === true
-                                                    ? <p className="inf-dsc">
-                                                        Đối với vé của hãng Vietjet Air bay trong ngày,
-                                                        Quý khách cần thanh toán ngay để giữ chỗ.
-                                                        <br />
+                                            <div className="flex-warnning">
+                                                <p className="inf-dsc">
+                                                    Đối với vé của hãng Vietjet Air bay trong ngày,
+                                                    Quý khách cần thanh toán ngay để giữ chỗ.
+                                                    < br />
+                                                    {owPaymentNow === true
+                                                        ?
                                                         <Countdown />
-                                                    </p>
-                                                    : <div className="flex-warnning">
-                                                        <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
-                                                        <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
-                                                        <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
-                                                    </div>
-
-                                                : twPaymentNow === true ?
-                                                    <p className="inf-dsc">
-                                                        Đối với vé của hãng Vietjet Air bay trong ngày,
-                                                        Quý khách cần thanh toán ngay để giữ chỗ.
-                                                        <br />
-                                                        <Countdown />
-                                                    </p>
-                                                    :
-                                                    <div className="flex-warnning">
-                                                        <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
-                                                        <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
-                                                        <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
-                                                    </div>
-                                            }
+                                                        : <CountdownTimer targetTime={dayjs(ticket.expiredDate)} />
+                                                    }
+                                                </p>
+                                                <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                                <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                                            </div>
+                                            <h3 className="title-info">Thông tin vé của bạn.</h3>
                                             <div className="frame-ticket">
                                                 <div className="header-ticket" style={{ borderBottom: '1px dashed #3554D1' }}>
                                                     <div className="frame-logo">
@@ -282,15 +269,16 @@ const ThanksYou = () => {
                             : ticketInfMap.map((ticket, i) => (
                                 <div className="ticket-information">
                                     <div className="flex-warnning">
-                                        {owPaymentNow === true
-                                            ? <p className="inf-dsc">
-                                                Đối với vé của hãng Vietjet Air bay trong ngày,
-                                                Quý khách cần thanh toán ngay để giữ chỗ.
-                                                <br />
+                                        <p className="inf-dsc">
+                                            Đối với vé của hãng Vietjet Air bay trong ngày,
+                                            Quý khách cần thanh toán ngay để giữ chỗ.
+                                            < br />
+                                            {owPaymentNow === true
+                                                ?
                                                 <Countdown />
-                                            </p>
-                                            : <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
-                                        }
+                                                : <CountdownTimer targetTime={dayjs(ticket.expiredDate)} />
+                                            }
+                                        </p>
                                         <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
                                         <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
                                     </div>
