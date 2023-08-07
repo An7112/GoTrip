@@ -284,7 +284,7 @@ const PaginatedList = (props: IProps) => {
     },
   ];
 
-  // console.log(dataBooking, selectedItem)
+  console.log(selectedItem, conditions)
 
   const Bookingitems: TabsProps['items'] = dataBooking.map((element, index) => (
     {

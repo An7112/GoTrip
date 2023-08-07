@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import './thanks-you.css'
-import { formatDayByDateNoT, formatTimeByDate, getAirlineLogo, getCiTy } from "utils/custom/custom-format";
+import { formatDayByDateNoT, formatTimeByDate, getAirlineLogo, getCiTy, getCode } from "utils/custom/custom-format";
 import axios from "axios";
-import { Tabs } from "antd";
+import { Skeleton, Tabs } from "antd";
 import dayjs from "dayjs";
 import { BsFillCheckCircleFill } from 'react-icons/bs'
-import {MdOutlinePayments} from 'react-icons/md'
+import { MdOutlinePayments } from 'react-icons/md'
 import Countdown from "component/count-down/count-down";
 
 const ThanksYou = () => {
@@ -20,6 +20,7 @@ const ThanksYou = () => {
     const [owPaymentNow, setOwPaymentNow] = useState(false)
     const [twPaymentNow, setTwPaymentNow] = useState(false)
     const [loadingQr, setLoadingQr] = useState(true)
+    const [loadingTicket, setLoadingTicket] = useState(true)
 
     let scrollTimeout: ReturnType<typeof setTimeout>;
 
@@ -28,14 +29,7 @@ const ThanksYou = () => {
         if (isArrayLocal) {
             const data = JSON.parse(isArrayLocal)
             setTicketInf(data)
-            setTicketInfMap(data.listFareData)
             setListPassenger(data.listPassenger)
-            // const resultObject: any = {};
-            // resultObject["key1"] = data.listFareData[0].bookingCode;
-            // if (data.listFareData.length > 1) {
-            //     resultObject["keys2"] = data.listFareData[1].bookingCode;
-            // }
-            // setBookingCode(resultObject)
             if (Array.isArray(data.listFareData)) {
                 if (data.listFareData.length === 1) {
                     const owCheck = data.listFareData[0].message === "# Yêu cầu thanh toán ngay để được đặt chổ và xuất vé !"
@@ -55,8 +49,44 @@ const ThanksYou = () => {
                     + ((cur.fareInf + cur.feeInf + cur.serviceFeeInf + cur.taxInf) * cur.inf))
                 , 0)
             setAmount(amount)
+            const fetchData = async () => {
+                setLoadingTicket(true)
+                const AuthorizationCode = await getCode()
+                try {
+                    const headers = {
+                        Authorization: AuthorizationCode,
+                    };
+
+                    const fetchData = async (element: any) => {
+                        const res = await axios.get(`https://api.vinajet.vn/get-price-term?airline=${element.airline}&groupClass=${element.groupClass}&fareClass=${element.listFlight[0].fareClass}&AgCode=VINAJET145`, {
+                            headers: headers
+                        });
+                        return res.data
+                    }
+                    const responses: any = await Promise.all(data.listFareData.map(fetchData));
+                    const bookingRulesMap: any = {};
+                    responses.forEach((item: any, index: number) => {
+                        bookingRulesMap[index] = item.bookingRules.filter((rule: any) => rule.title === "Ký gửi:" || rule.title === "Xách tay:");
+                    });
+
+                    const updateList = data.listFareData.map((element: any, index: number) => ({
+                        ...element,
+                        baggageMap: bookingRulesMap[index],
+                    }));
+                    setLoadingTicket(false)
+                    setTicketInfMap(updateList)
+                } catch (error) {
+                    console.log(error)
+                } finally {
+                    setLoadingTicket(false)
+                }
+            }
+            fetchData()
         }
+
     }, [])
+
+    console.log(ticketInfMap)
 
     useEffect(() => {
         const fetchBank = async () => {
@@ -111,6 +141,7 @@ const ThanksYou = () => {
         }, 100);
     };
 
+
     return (
         <section className='thanks-section'>
             <div className="thanks-container">
@@ -119,51 +150,157 @@ const ThanksYou = () => {
                     <h3 className="title-info" style={{ margin: '0' }}>Đặt vé thành công!</h3>
                     <p className="inf-dsc">Thông tin đặt chỗ và hướng dẫn thanh toán đã được gửi tới email.</p>
                 </div>
-                <h3 className="title-info">Thông tin vé của bạn.</h3>
-                {ticketInfMap.length > 1
-                    ? <Tabs
-                        defaultActiveKey="1"
-                        centered
-                        items={ticketInfMap.map((ticket: any, i) => {
-                            const id = String(i + 1);
-                            return {
-                                label: `Vé chuyến ${i === 0 ? 'đi' : 'về'}`,
-                                key: id,
-                                children: <div className="ticket-information">
-                                    {i === 0
-                                        ? owPaymentNow === true
+                {loadingTicket === true
+                    ? <Skeleton active paragraph={{ rows: 10 }} />
+                    : <>
+                        <h3 className="title-info">Thông tin vé của bạn.</h3>
+                        {ticketInfMap.length > 1
+                            ? <Tabs
+                                defaultActiveKey="1"
+                                centered
+                                items={ticketInfMap.map((ticket: any, i) => {
+                                    const id = String(i + 1);
+                                    return {
+                                        label: `Vé chuyến ${i === 0 ? 'đi' : 'về'}`,
+                                        key: id,
+                                        children: <div className="ticket-information">
+                                            {i === 0
+                                                ? owPaymentNow === true
+                                                    ? <p className="inf-dsc">
+                                                        Đối với vé của hãng Vietjet Air bay trong ngày,
+                                                        Quý khách cần thanh toán ngay để giữ chỗ.
+                                                        <br />
+                                                        <Countdown />
+                                                    </p>
+                                                    : <div>
+                                                        <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                                        <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                                        <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                                                    </div>
+
+                                                : twPaymentNow === true ?
+                                                    <p className="inf-dsc">
+                                                        Đối với vé của hãng Vietjet Air bay trong ngày,
+                                                        Quý khách cần thanh toán ngay để giữ chỗ.
+                                                        <br />
+                                                        <Countdown />
+                                                    </p>
+                                                    :
+                                                    <div>
+                                                        <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                                        <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                                        <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                                                    </div>
+                                            }
+                                            <div className="frame-ticket">
+                                                <div className="header-ticket" style={{ borderBottom: '1px dashed #3554D1' }}>
+                                                    <div className="frame-logo">
+
+                                                        {getAirlineLogo(ticket.airline, '160px')}
+                                                    </div>
+                                                    <h3 className="title-info">Hotline đại lý: 0984227777</h3>
+                                                </div>
+                                                <div className="body-ticket">
+                                                    <div className="ticket-inf-item">
+                                                        <h3 className="inf-title">HỌ VÀ TÊN</h3>
+                                                        <ol>
+                                                            {
+                                                                listPassenger.length > 0 && listPassenger.map((passenger: any) => (
+                                                                    <li>{passenger.lastName} {passenger.firstName}</li>
+                                                                ))
+                                                            }
+                                                        </ol>
+                                                    </div>
+                                                    <div className="ticket-inf-item col-2">
+                                                        <div className="flex-row-inf">
+                                                            <div>
+                                                                <h3 className="inf-title">MÃ ĐẶT CHỖ </h3>
+                                                                <p className="inf-dsc bold">{ticket.bookingCode}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
+                                                            <h3 className="inf-title" style={{ fontSize: '16px' }}>THÔNG TIN CHUYẾN BAY</h3>
+                                                        </div>
+                                                        <div className="flex-row-inf">
+                                                            <h3 className="inf-title">CHUYẾN BAY</h3>
+                                                            <p className="inf-dsc bold">{ticket.listFlight[0].flightNumber}</p>
+                                                        </div>
+                                                        <div className="flex-row-inf">
+                                                            <h3 className="inf-title">NƠI ĐI</h3>
+                                                            <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].startPoint)}</p>
+                                                        </div>
+                                                        <div className="flex-row-inf">
+                                                            <h3 className="inf-title">NƠI ĐẾN</h3>
+                                                            <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].endPoint)}</p>
+                                                        </div>
+                                                        <div className="flex-row-inf">
+                                                            <h3 className="inf-title">KHỞI HÀNH</h3>
+                                                            <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].startDate)}</p>
+                                                        </div>
+                                                        <div className="flex-row-inf">
+                                                            <h3 className="inf-title">GIỜ ĐẾN</h3>
+                                                            <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].endDate)}</p>
+                                                        </div>
+                                                        <div className="flex-row-inf">
+                                                            <h3 className="inf-title">NGÀY</h3>
+                                                            <p className="inf-dsc bold">{formatDayByDateNoT(ticket.listFlight[0].startDate)}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="ticket-inf-item">
+                                                        <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
+                                                            <h3 className="inf-title">DỊCH VỤ CỘNG THÊM</h3>
+                                                        </div>
+                                                        {ticket.baggageMap.map((bag:any) => (
+                                                            <div className="flex-row-inf">
+                                                                <h3 className="inf-title">{bag.title.toUpperCase().replace(/:/g, '')}</h3>
+                                                                <p className="inf-dsc">{bag.content === "Không" ? "0 kg" : bag.content}</p>
+                                                            </div>
+                                                        ))}
+                                                        <div className="flex-row-inf">
+                                                            <h3 className="inf-title">KÝ GỬI MUA THÊM</h3>
+                                                            <p className="inf-dsc">{i === 0 ? totalBaggageFrom : totalBaggageTo} Kg</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="warnning">
+                                                    <div className="warnning-item">
+                                                        <p className="warnning-dsc">Quý khách vui lòng mang theo đầỳ đủ <strong>giấy tờ tùy thân</strong></p>
+                                                    </div>
+                                                    <div className="warnning-item" style={{ borderRight: '1px solid #e0e7ff', borderLeft: '1px solid #e0e7ff' }}>
+                                                        <p className="warnning-dsc">Có mặt tại sân bay ít nhất <br /> <strong>2 tiếng trước giờ khởi hành</strong></p>
+                                                    </div>
+                                                    <div className="warnning-item">
+                                                        <p className="warnning-dsc">Ngày trên vé, được tính <strong>theo giờ địa phương</strong></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>,
+                                    };
+                                })}
+                            />
+                            : ticketInfMap.map((ticket) => (
+                                <div className="ticket-information">
+                                    <div>
+                                        {owPaymentNow === true
                                             ? <p className="inf-dsc">
                                                 Đối với vé của hãng Vietjet Air bay trong ngày,
                                                 Quý khách cần thanh toán ngay để giữ chỗ.
                                                 <br />
                                                 <Countdown />
                                             </p>
-                                            : <div>
-                                                <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
-                                                <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
-                                                <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
-                                            </div>
-
-                                        : twPaymentNow === true ?
-                                            <p className="inf-dsc">
-                                                Đối với vé của hãng Vietjet Air bay trong ngày,
-                                                Quý khách cần thanh toán ngay để giữ chỗ.
-                                                <br />
-                                                <Countdown />
-                                            </p>
-                                            :
-                                            <div>
-                                                <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
-                                                <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
-                                                <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
-                                            </div>
-                                    }
+                                            : <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
+                                        }
+                                        <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
+                                        <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
+                                    </div>
                                     <div className="frame-ticket">
-                                        <div className="header-ticket">
+                                        <div className="header-ticket" style={{ borderTop: '1px dashed #3554D1' }}>
                                             <div className="frame-logo">
                                                 {/* <p className="logo-title">{ticket.airlineName}</p> */}
                                                 {getAirlineLogo(ticket.airline, '160px')}
                                             </div>
+                                            <h3 className="title-info">Hotline đại lý: 0984227777</h3>
                                         </div>
                                         <div className="body-ticket">
                                             <div className="ticket-inf-item">
@@ -217,7 +354,7 @@ const ThanksYou = () => {
                                                 </div>
                                                 <div className="flex-row-inf">
                                                     <h3 className="inf-title">HÀNH LÝ</h3>
-                                                    <p className="inf-dsc">{i === 0 ? totalBaggageFrom : totalBaggageTo} Kg</p>
+                                                    <p className="inf-dsc">{totalBaggageFrom} Kg</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -232,115 +369,15 @@ const ThanksYou = () => {
                                                 <p className="warnning-dsc">Ngày trên vé, được tính <strong>theo giờ địa phương</strong></p>
                                             </div>
                                         </div>
-                                        <div className="header-ticket">
-                                            <h3 className="title-info">Ghi Hotline đại lý: 0984227777</h3>
-                                            <div className="frame-logo">
-                                                {/* <p className="logo-title">{ticket.airlineName}</p> */}
-                                                {getAirlineLogo(ticket.airline, '160px')}
-                                            </div>
-                                        </div>
                                     </div>
 
-                                </div>,
-                            };
-                        })}
-                    />
-                    : ticketInfMap.map((ticket) => (
-                        <div className="ticket-information">
-                            <div>
-                                {owPaymentNow === true
-                                    ? <p className="inf-dsc">
-                                        Đối với vé của hãng Vietjet Air bay trong ngày,
-                                        Quý khách cần thanh toán ngay để giữ chỗ.
-                                        <br />
-                                        <Countdown />
-                                    </p>
-                                    : <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
-                                }
-                                <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
-                                <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
-                            </div>
-                            <div className="frame-ticket">
-                                <div className="header-ticket" style={{borderBottom: '1px dashed #3554D1'}}>
-                                    <div className="frame-logo">
-                                        {/* <p className="logo-title">{ticket.airlineName}</p> */}
-                                        {getAirlineLogo(ticket.airline, '160px')}
-                                    </div>
-                                    <h3 className="title-info">Ghi Hotline đại lý: 0984227777</h3>
                                 </div>
-                                <div className="body-ticket">
-                                    <div className="ticket-inf-item">
-                                        <h3 className="inf-title">HỌ VÀ TÊN</h3>
-                                        <ol>
-                                            {
-                                                listPassenger.length > 0 && listPassenger.map((passenger: any) => (
-                                                    <li>{passenger.lastName} {passenger.firstName}</li>
-                                                ))
-                                            }
-                                        </ol>
-                                    </div>
-                                    <div className="ticket-inf-item col-2">
-                                        <div className="flex-row-inf">
-                                            <div>
-                                                <h3 className="inf-title">MÃ ĐẶT CHỖ </h3>
-                                                <p className="inf-dsc bold">{ticket.bookingCode}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
-                                            <h3 className="inf-title" style={{ fontSize: '16px' }}>THÔNG TIN CHUYẾN BAY</h3>
-                                        </div>
-                                        <div className="flex-row-inf">
-                                            <h3 className="inf-title">CHUYẾN BAY</h3>
-                                            <p className="inf-dsc bold">{ticket.listFlight[0].flightNumber}</p>
-                                        </div>
-                                        <div className="flex-row-inf">
-                                            <h3 className="inf-title">NƠI ĐI</h3>
-                                            <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].startPoint)}</p>
-                                        </div>
-                                        <div className="flex-row-inf">
-                                            <h3 className="inf-title">NƠI ĐẾN</h3>
-                                            <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].endPoint)}</p>
-                                        </div>
-                                        <div className="flex-row-inf">
-                                            <h3 className="inf-title">KHỞI HÀNH</h3>
-                                            <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].startDate)}</p>
-                                        </div>
-                                        <div className="flex-row-inf">
-                                            <h3 className="inf-title">GIỜ ĐẾN</h3>
-                                            <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].endDate)}</p>
-                                        </div>
-                                        <div className="flex-row-inf">
-                                            <h3 className="inf-title">NGÀY</h3>
-                                            <p className="inf-dsc bold">{formatDayByDateNoT(ticket.listFlight[0].startDate)}</p>
-                                        </div>
-                                    </div>
-                                    <div className="ticket-inf-item">
-                                        <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
-                                            <h3 className="inf-title">DỊCH VỤ CỘNG THÊM</h3>
-                                        </div>
-                                        <div className="flex-row-inf">
-                                            <h3 className="inf-title">HÀNH LÝ</h3>
-                                            <p className="inf-dsc">{totalBaggageFrom} Kg</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="warnning">
-                                    <div className="warnning-item">
-                                        <p className="warnning-dsc">Quý khách vui lòng mang theo đầỳ đủ <strong>giấy tờ tùy thân</strong></p>
-                                    </div>
-                                    <div className="warnning-item" style={{ borderRight: '1px solid #e0e7ff', borderLeft: '1px solid #e0e7ff' }}>
-                                        <p className="warnning-dsc">Có mặt tại sân bay ít nhất <br /> <strong>2 tiếng trước giờ khởi hành</strong></p>
-                                    </div>
-                                    <div className="warnning-item">
-                                        <p className="warnning-dsc">Ngày trên vé, được tính <strong>theo giờ địa phương</strong></p>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    ))
+                            ))
+                        }
+                    </>
                 }
-                <button className="button-payment" onClick={handleButtonClick}>Thanh toán <MdOutlinePayments/></button>
+                {loadingTicket === false && <button className="button-payment" onClick={handleButtonClick}>Thanh toán <MdOutlinePayments /></button>}
+
                 {paymentOpen === true && <div className="payment-inf">
                     {loadingQr === true
                         && <div className="loading-qr">

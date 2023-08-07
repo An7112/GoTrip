@@ -491,6 +491,8 @@ function Booking() {
         };
     });
 
+    console.log(onewayBaggage, returnBaggage)
+
     const returnOption = returnBaggage.map((element: any) => {
         return {
             label: `Ký gửi ${element.name} - ${formatNumber(element.price)} ${element.currency}`,

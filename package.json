@@ -18,8 +18,10 @@
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "dayjs": "^1.11.9",
+    "dotenv": "^16.3.1",
     "jsrsasign": "^10.8.6",
     "md5": "^2.3.0",
+    "node-rsa": "^1.1.1",
     "qrcode.react": "^3.1.0",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
@@ -63,6 +65,7 @@
   "devDependencies": {
     "@types/crypto-js": "^4.1.1",
     "@types/md5": "^2.3.2",
+    "@types/node-rsa": "^1.1.1",
     "@types/react-slick": "^0.23.10"
   }
 }
