@@ -894,15 +894,15 @@ function Booking() {
                                     <div className='frame-price'>
                                         {element.adt > 0 && <div className='price-item'>
                                             <p className='title'>Vé người lớn</p>
-                                            <p className='title'>{element.adt} x {formatNumber((element.fareAdt + element.feeAdt + element.taxAdt + element.serviceFeeAdt) * element.adt)} {element.currency ?? 'VND'}</p>
+                                            <p className='title'>{element.adt} x {formatNumber((element.fareAdt) * element.adt)} {element.currency ?? 'VND'}</p>
                                         </div>}
                                         {element.chd > 0 && <div className='price-item'>
                                             <p className='title'>Vé người trẻ em</p>
-                                            <p className='title'>{element.chd} x {formatNumber((element.fareChd + element.feeChd + element.taxChd + element.serviceFeeChd) * element.chd)} {element.currency ?? 'VND'}</p>
+                                            <p className='title'>{element.chd} x {formatNumber((element.fareChd) * element.chd)} {element.currency ?? 'VND'}</p>
                                         </div>}
                                         {element.inf > 0 && <div className='price-item'>
                                             <p className='title'>Vé em bé</p>
-                                            <p className='title'>{element.inf} x {formatNumber((element.fareInf + element.feeInf + element.taxInf + element.serviceFeeInf) * element.inf)} {element.currency ?? 'VND'}</p>
+                                            <p className='title'>{element.inf} x {formatNumber((element.fareInf) * element.inf)} {element.currency ?? 'VND'}</p>
                                         </div>}
                                         <div className='price-item'>
                                             <p className='title'>Tổng thuế và phí</p>
