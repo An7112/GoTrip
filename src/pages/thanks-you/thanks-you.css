@@ -131,6 +131,15 @@
     background-color: #f2f2f2c4;
 }
 
+.flex-warnning{
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    background-color: #e9f5ffc4;
+    border-radius: 4px;
+    border: 1px solid #e5e6eb;
+}
+
 .bold{
     font-weight: 600;
     color: #3554d1;
@@ -188,7 +197,7 @@
     width: 100%;
     display: flex;
     flex-direction: row;
-    gap: 8px;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
 }
@@ -209,13 +218,14 @@
 
 .frame-ticket{
     border-radius: 4px;
+    box-shadow: 0px 10px 35px 0px #0510361A;
     overflow: hidden;
     width: 100%;
     border: 1px dashed #3554d1;
 }
 .ticket-inf-item ol{
     margin: 0;
-    padding-left: 8px;
+    padding-left: 20px;
 }
 
 @media (max-width: 898px){
@@ -233,6 +243,12 @@
     }
     .thanks-section .thanks-container{
         padding: 0 12px;
+    }
+    .image-qr{
+        width: 200px;
+    }
+    .img-qr{
+        width: 70px;
     }
 }
 
@@ -255,6 +271,9 @@
     .warnning-dsc{
         font-size: 11px;
     }
+    .img-qr{
+        width: 70px;
+    }
 }
 
 @media (max-width: 772px){
@@ -273,6 +292,12 @@
     .warnning-dsc{
         font-size: 10px;
     }
+    .image-qr{
+        width: 160px;
+    }
+    .img-qr{
+        width: 70px;
+    }
 }
 
 @media (max-width: 682px){
@@ -280,28 +305,28 @@
         font-size: 10px !important;
     }
     .ticket-inf-item ol{
-        font-size: 9px;
+        font-size: 10px;
     }
     .inf-dsc{
-        font-size: 9px;
+        font-size: 10px;
     }
     .warnning-dsc{
-        font-size: 9px;
+        font-size: 10px;
     }
 }
 
 @media (max-width: 634px){
     .inf-title{
-        font-size: 9px !important;
+        font-size: 10px !important;
     }
     .ticket-inf-item ol{
-        font-size: 8px;
+        font-size: 10px;
     }
     .inf-dsc{
-        font-size: 8px;
+        font-size: 10px;
     }
     .warnning-dsc{
-        font-size: 8px;
+        font-size: 10px;
     }
 }
 
@@ -350,18 +375,10 @@
         font-size: 5px;
     }
 }
+*/
 
-@media (max-width: 314px){
-    .inf-title{
-        font-size: 5px !important;
-    }
+@media (max-width: 346px){
     .ticket-inf-item ol{
-        font-size: 4px;
+        padding-left: 8px;
     }
-    .inf-dsc{
-        font-size: 4px;
-    }
-    .warnning-dsc{
-        font-size: 4px;
-    }
-} */
+}

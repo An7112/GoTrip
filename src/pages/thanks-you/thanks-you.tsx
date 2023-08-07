@@ -172,7 +172,7 @@ const ThanksYou = () => {
                                                         <br />
                                                         <Countdown />
                                                     </p>
-                                                    : <div>
+                                                    : <div className="flex-warnning">
                                                         <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
                                                         <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
                                                         <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
@@ -186,7 +186,7 @@ const ThanksYou = () => {
                                                         <Countdown />
                                                     </p>
                                                     :
-                                                    <div>
+                                                    <div className="flex-warnning">
                                                         <h3 className="title-info" style={{ margin: '0' }}>Cần thanh toán trước {dayjs(ticket.expiredDate).format('HH:mm:ss [ngày] DD [tháng] MM [năm] YYYY')}.</h3>
                                                         <p className="inf-dsc">Khi thanh toán hoàn tất, vé của quý khách sẽ được tự động kích hoạt.</p>
                                                         <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
@@ -222,27 +222,27 @@ const ThanksYou = () => {
                                                             <h3 className="inf-title" style={{ fontSize: '16px' }}>THÔNG TIN CHUYẾN BAY</h3>
                                                         </div>
                                                         <div className="flex-row-inf">
-                                                            <h3 className="inf-title">CHUYẾN BAY</h3>
+                                                            <h3 className="inf-title">CHUYẾN BAY:</h3>
                                                             <p className="inf-dsc bold">{ticket.listFlight[0].flightNumber}</p>
                                                         </div>
                                                         <div className="flex-row-inf">
-                                                            <h3 className="inf-title">NƠI ĐI</h3>
+                                                            <h3 className="inf-title">NƠI ĐI:</h3>
                                                             <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].startPoint)}</p>
                                                         </div>
                                                         <div className="flex-row-inf">
-                                                            <h3 className="inf-title">NƠI ĐẾN</h3>
+                                                            <h3 className="inf-title">NƠI ĐẾN:</h3>
                                                             <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].endPoint)}</p>
                                                         </div>
                                                         <div className="flex-row-inf">
-                                                            <h3 className="inf-title">KHỞI HÀNH</h3>
+                                                            <h3 className="inf-title">KHỞI HÀNH:</h3>
                                                             <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].startDate)}</p>
                                                         </div>
                                                         <div className="flex-row-inf">
-                                                            <h3 className="inf-title">GIỜ ĐẾN</h3>
+                                                            <h3 className="inf-title">GIỜ ĐẾN:</h3>
                                                             <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].endDate)}</p>
                                                         </div>
                                                         <div className="flex-row-inf">
-                                                            <h3 className="inf-title">NGÀY</h3>
+                                                            <h3 className="inf-title">NGÀY:</h3>
                                                             <p className="inf-dsc bold">{formatDayByDateNoT(ticket.listFlight[0].startDate)}</p>
                                                         </div>
                                                     </div>
@@ -250,14 +250,14 @@ const ThanksYou = () => {
                                                         <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
                                                             <h3 className="inf-title">DỊCH VỤ CỘNG THÊM</h3>
                                                         </div>
-                                                        {ticket.baggageMap.map((bag:any) => (
+                                                        {ticket.baggageMap.map((bag: any) => (
                                                             <div className="flex-row-inf">
-                                                                <h3 className="inf-title">{bag.title.toUpperCase().replace(/:/g, '')}</h3>
+                                                                <h3 className="inf-title">{bag.title.toUpperCase()}</h3>
                                                                 <p className="inf-dsc">{bag.content === "Không" ? "0 kg" : bag.content}</p>
                                                             </div>
                                                         ))}
                                                         <div className="flex-row-inf">
-                                                            <h3 className="inf-title">KÝ GỬI MUA THÊM</h3>
+                                                            <h3 className="inf-title">KÝ GỬI THÊM:</h3>
                                                             <p className="inf-dsc">{i === 0 ? totalBaggageFrom : totalBaggageTo} Kg</p>
                                                         </div>
                                                     </div>
@@ -279,9 +279,9 @@ const ThanksYou = () => {
                                     };
                                 })}
                             />
-                            : ticketInfMap.map((ticket) => (
+                            : ticketInfMap.map((ticket, i) => (
                                 <div className="ticket-information">
-                                    <div>
+                                    <div className="flex-warnning">
                                         {owPaymentNow === true
                                             ? <p className="inf-dsc">
                                                 Đối với vé của hãng Vietjet Air bay trong ngày,
@@ -295,7 +295,7 @@ const ThanksYou = () => {
                                         <p className="inf-dsc">Chúc quý khách có một chuyến bay tốt đẹp!</p>
                                     </div>
                                     <div className="frame-ticket">
-                                        <div className="header-ticket" style={{ borderTop: '1px dashed #3554D1' }}>
+                                        <div className="header-ticket" style={{ borderBottom: '1px dashed #3554D1' }}>
                                             <div className="frame-logo">
                                                 {/* <p className="logo-title">{ticket.airlineName}</p> */}
                                                 {getAirlineLogo(ticket.airline, '160px')}
@@ -324,27 +324,27 @@ const ThanksYou = () => {
                                                     <h3 className="inf-title" style={{ fontSize: '16px' }}>THÔNG TIN CHUYẾN BAY</h3>
                                                 </div>
                                                 <div className="flex-row-inf">
-                                                    <h3 className="inf-title">CHUYẾN BAY</h3>
+                                                    <h3 className="inf-title">CHUYẾN BAY:</h3>
                                                     <p className="inf-dsc bold">{ticket.listFlight[0].flightNumber}</p>
                                                 </div>
                                                 <div className="flex-row-inf">
-                                                    <h3 className="inf-title">NƠI ĐI</h3>
+                                                    <h3 className="inf-title">NƠI ĐI:</h3>
                                                     <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].startPoint)}</p>
                                                 </div>
                                                 <div className="flex-row-inf">
-                                                    <h3 className="inf-title">NƠI ĐẾN</h3>
+                                                    <h3 className="inf-title">NƠI ĐẾN:</h3>
                                                     <p className="inf-dsc bold">{getCiTy(ticket.listFlight[0].endPoint)}</p>
                                                 </div>
                                                 <div className="flex-row-inf">
-                                                    <h3 className="inf-title">KHỞI HÀNH</h3>
+                                                    <h3 className="inf-title">KHỞI HÀNH:</h3>
                                                     <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].startDate)}</p>
                                                 </div>
                                                 <div className="flex-row-inf">
-                                                    <h3 className="inf-title">GIỜ ĐẾN</h3>
+                                                    <h3 className="inf-title">GIỜ ĐẾN:</h3>
                                                     <p className="inf-dsc bold">{formatTimeByDate(ticket.listFlight[0].endDate)}</p>
                                                 </div>
                                                 <div className="flex-row-inf">
-                                                    <h3 className="inf-title">NGÀY</h3>
+                                                    <h3 className="inf-title">NGÀY:</h3>
                                                     <p className="inf-dsc bold">{formatDayByDateNoT(ticket.listFlight[0].startDate)}</p>
                                                 </div>
                                             </div>
@@ -352,9 +352,15 @@ const ThanksYou = () => {
                                                 <div className="flex-row-inf" style={{ justifyContent: 'center' }}>
                                                     <h3 className="inf-title">DỊCH VỤ CỘNG THÊM</h3>
                                                 </div>
+                                                {ticket.baggageMap.map((bag: any) => (
+                                                    <div className="flex-row-inf">
+                                                        <h3 className="inf-title">{bag.title.toUpperCase()}</h3>
+                                                        <p className="inf-dsc">{bag.content === "Không" ? "0 kg" : bag.content}</p>
+                                                    </div>
+                                                ))}
                                                 <div className="flex-row-inf">
-                                                    <h3 className="inf-title">HÀNH LÝ</h3>
-                                                    <p className="inf-dsc">{totalBaggageFrom} Kg</p>
+                                                    <h3 className="inf-title">KÝ GỬI THÊM:</h3>
+                                                    <p className="inf-dsc">{i === 0 ? totalBaggageFrom : totalBaggageTo} Kg</p>
                                                 </div>
                                             </div>
                                         </div>

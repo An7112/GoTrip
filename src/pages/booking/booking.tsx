@@ -374,6 +374,8 @@ function Booking() {
                 }
             } catch (error) {
                 console.log(error)
+            }finally{
+                localStorage.removeItem('countdownEndTime')
             }
         }
 

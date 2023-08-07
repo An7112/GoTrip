@@ -20,10 +20,10 @@ const Countdown = () => {
         const checkId = data.id !== Number(JSON.parse(targetId));
         if (checkId) {
           localStorage.removeItem(localStorageKey);
-          const adjustedTargetTime = dayjs().add(15, 'minute'); // Điều chỉnh lại targetTime
-          localStorage.setItem(localStorageKey, adjustedTargetTime.toISOString()); // Cập nhật lại localStorageKey
-          localStorage.setItem('targetId', JSON.stringify(data.id)); // Cập nhật lại targetId
-          setTargetTime(adjustedTargetTime); // Cập nhật state targetTime
+          const adjustedTargetTime = dayjs().add(15, 'minute');
+          localStorage.setItem(localStorageKey, adjustedTargetTime.toISOString());
+          localStorage.setItem('targetId', JSON.stringify(data.id));
+          setTargetTime(adjustedTargetTime);
         }
       }
     }
@@ -59,9 +59,11 @@ const Countdown = () => {
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
+  const existingValue = remainingTime
+
   return (
     <span>
-      {remainingTime <= 0 ? (
+      {existingValue <= 0 ? (
         <span style={{ fontWeight: '500', color: '#4095FE' }}>Hết thời gian thanh toán</span>
       ) : (
         <span>
